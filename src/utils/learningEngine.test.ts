@@ -373,6 +373,171 @@ test('recordGameAttemptInProgress updates shared learnedWordIds, schedules space
   assert.equal(nineSkills.length, 9);
   const spatialSkill = nineSkills.find((s) => s.id === 'spatial-language');
   assert.equal(spatialSkill?.demonstratedCount, 1);
+
+  // CRITICAL: Repeating the exact same solved stage with no improvement must be strictly idempotent (0 XP, 0 stars, 0 skill inflation)
+  const xpBeforeRepeat = afterSuccess.worldProgress?.xp || 0;
+  const starsBeforeRepeat = afterSuccess.worldProgress?.totalStars || 0;
+  const afterRepeatSameScore = recordGameAttemptInProgress(
+    afterSuccess,
+    {
+      locationId: 'street-explorer',
+      levelNumber: 1,
+      wordIds: ['w-world-amam', 'w-world-yamin'],
+      mistakesCount: 0,
+      ArabicPrompt: 'اِتَّجِهْ إِلَى الْأَمَامِ',
+    },
+    true,
+    now + 2000
+  );
+  assert.equal(afterRepeatSameScore.worldProgress?.xp, xpBeforeRepeat);
+  assert.equal(afterRepeatSameScore.worldProgress?.totalStars, starsBeforeRepeat);
+  assert.equal(
+    afterRepeatSameScore.worldProgress?.skillDemonstrations['spatial-language'],
+    1
+  );
+  assert.equal(
+    afterRepeatSameScore.worldProgress?.completedLevels['street-explorer:1']?.attempts,
+    1
+  );
 });
+
+test('recordGameAttemptInProgress awards bounded XP and star delta only when replay improves stars', async () => {
+  const { recordGameAttemptInProgress } = await import('./worldEngine');
+  const now = 1_700_000_000_000;
+  const initialProgress: LearnerProgress = {
+    locale: 'id-ID',
+    onboardingCompleted: false,
+    activePathway: 'understand-quran',
+    completedLessonIds: [],
+    bookmarkedWordIds: [],
+    learnedWordIds: [],
+    reviewQueue: {},
+    lessonQuizScores: {},
+    reflections: {},
+    dailyGoalMinutes: 10,
+    showTransliteration: true,
+    arabicFontScale: 'large',
+    remindersEnabled: false,
+    ramadanModeEnabled: false,
+  };
+
+  // First completion with 2 mistakes -> 1 star (40 + 1*10 = 50 XP)
+  const firstPass = recordGameAttemptInProgress(
+    initialProgress,
+    {
+      locationId: 'market',
+      levelNumber: 1,
+      wordIds: ['w-world-tuffaha', 'w-world-ahmar'],
+      mistakesCount: 2,
+      ArabicPrompt: 'أُرِيدُ تُفَّاحَةً حَمْرَاءَ',
+    },
+    true,
+    now
+  );
+  assert.equal(firstPass.worldProgress?.totalStars, 1);
+  assert.equal(firstPass.worldProgress?.xp, 50);
+  assert.equal(
+    firstPass.worldProgress?.skillDemonstrations['vocabulary-comprehension'],
+    1
+  );
+
+  // Replay with 0 mistakes -> improves to 3 stars (+2 stars, +35 XP bounded improvement)
+  const improvedPass = recordGameAttemptInProgress(
+    firstPass,
+    {
+      locationId: 'market',
+      levelNumber: 1,
+      wordIds: ['w-world-tuffaha', 'w-world-ahmar'],
+      mistakesCount: 0,
+      ArabicPrompt: 'أُرِيدُ تُفَّاحَةً حَمْرَاءَ',
+    },
+    true,
+    now + 5000
+  );
+  assert.equal(improvedPass.worldProgress?.totalStars, 3);
+  assert.equal(improvedPass.worldProgress?.xp, 70);
+  // Skill demonstration count must still be 1 for this stage (not inflated by replay)
+  assert.equal(
+    improvedPass.worldProgress?.skillDemonstrations['vocabulary-comprehension'],
+    1
+  );
+});
+
+test('isWorldLocationUnlocked enforces progressive unlocking and respects freeExploreMode', async () => {
+  const {
+    createInitialWorldProgress,
+    isWorldLocationUnlocked,
+    recordGameAttemptInProgress,
+  } = await import('./worldEngine');
+
+  const emptyWorld = createInitialWorldProgress();
+  assert.equal(isWorldLocationUnlocked('street-explorer', emptyWorld), true);
+  assert.equal(isWorldLocationUnlocked('scene-lab', emptyWorld), true);
+  assert.equal(isWorldLocationUnlocked('market', emptyWorld), true);
+  assert.equal(isWorldLocationUnlocked('quranic-discovery', emptyWorld), true);
+  assert.equal(isWorldLocationUnlocked('sentence-bridge', emptyWorld), false);
+  assert.equal(isWorldLocationUnlocked('lost-message', emptyWorld), false);
+  assert.equal(isWorldLocationUnlocked('word-detective', emptyWorld), false);
+
+  // Free Explore overrides lock
+  assert.equal(
+    isWorldLocationUnlocked('word-detective', emptyWorld, true),
+    true
+  );
+
+  // Completing 1 stage unlocks sentence-bridge
+  let prog: LearnerProgress = {
+    locale: 'id-ID',
+    onboardingCompleted: false,
+    activePathway: 'understand-quran',
+    completedLessonIds: [],
+    bookmarkedWordIds: [],
+    learnedWordIds: [],
+    reviewQueue: {},
+    lessonQuizScores: {},
+    reflections: {},
+    dailyGoalMinutes: 10,
+    showTransliteration: true,
+    arabicFontScale: 'large',
+    remindersEnabled: false,
+    ramadanModeEnabled: false,
+  };
+  prog = recordGameAttemptInProgress(
+    prog,
+    {
+      locationId: 'street-explorer',
+      levelNumber: 1,
+      wordIds: ['w-world-amam'],
+      mistakesCount: 0,
+      ArabicPrompt: 'أَمَام',
+    },
+    true,
+    1_700_000_000_000
+  );
+  assert.equal(
+    isWorldLocationUnlocked('sentence-bridge', prog.worldProgress!),
+    true
+  );
+  assert.equal(
+    isWorldLocationUnlocked('lost-message', prog.worldProgress!),
+    false
+  );
+});
+
+test('all Quranic Discovery passages include verified text sources, licenses, and editorial notes', async () => {
+  const { QURANIC_DISCOVERY_PASSAGES } = await import('../data/worldData');
+  assert.ok(QURANIC_DISCOVERY_PASSAGES.length >= 4);
+  for (const p of QURANIC_DISCOVERY_PASSAGES) {
+    assert.ok(p.sourceUrl.startsWith('https://'));
+    assert.ok(p.audioUrl.startsWith('https://'));
+    assert.ok(p.arabicTextSource.length > 10);
+    assert.ok(p.translationLicense['id-ID'].length > 10);
+    assert.ok(p.translationLicense['ms-MY'].length > 10);
+    assert.ok(p.audioReciterSource.length > 10);
+    assert.ok(p.editorialVerificationNote['id-ID'].length > 10);
+    assert.ok(p.editorialVerificationNote['ms-MY'].length > 10);
+  }
+});
+
 
 

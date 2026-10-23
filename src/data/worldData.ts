@@ -17,6 +17,9 @@ export interface WorldLocationMeta {
   levelCount: number;
   editorialStatus: EditorialStatus;
   badgeColor: string;
+  recommendedAfterLocationId?: WorldLocationId;
+  unlockMinCompletedStages: number;
+  unlockRequirementLabel: LocalizedText;
 }
 
 export const WORLD_LOCATIONS: WorldLocationMeta[] = [
@@ -31,9 +34,9 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     },
     subtitle: {
       'id-ID':
-        'Navigasi peta 2D interaktif: arah (يَمِين / يَسَار / أَمَام / خَلْف), belokan (اِنْعَطِفْ), instruksi bertahap, dan kata keterangan ruang (فَوْق / تَحْت / بَيْن / بِجَانِب).',
+        'Navigasi lingkungan visual interaktif: arah (يَمِين / يَسَار / أَمَام / خَلْف), belokan (اِنْعَطِفْ), instruksi bertahap, dan kata keterangan ruang (فَوْق / تَحْت / بَيْن / بِجَانِب).',
       'ms-MY':
-        'Navigasi peta 2D interaktif: arah (يَمِين / يَسَار / أَمَام / خَلْف), belokan (اِنْعَطِفْ), arahan berperingkat dan kata sendi ruang (فَوْق / تَحْت / بَيْن / بِجَانِب).',
+        'Navigasi kejiranan visual interaktif: arah (يَمِين / يَسَار / أَمَام / خَلْف), belokan (اِنْعَطِفْ), arahan berperingkat dan kata sendi ruang (فَوْق / تَحْت / بَيْن / بِجَانِب).',
     },
     skillsTrained: [
       'spatial-language',
@@ -44,6 +47,11 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     levelCount: 6,
     editorialStatus: 'curriculum-draft-pending-scholar-review',
     badgeColor: '#145A4A',
+    unlockMinCompletedStages: 0,
+    unlockRequirementLabel: {
+      'id-ID': 'Titik Awal yang Disarankan · Terbuka untuk semua pembelajar',
+      'ms-MY': 'Titik Permulaan yang Dicadangkan · Terbuka untuk semua pelajar',
+    },
   },
   {
     id: 'scene-lab',
@@ -56,9 +64,9 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     },
     subtitle: {
       'id-ID':
-        'Uji pemahaman kalimat dengan mencocokkan dan menyusun objek visual secara langsung (contoh: الْكِتَابُ تَحْتَ الطَّاوِلَةِ).',
+        'Uji pemahaman kalimat dengan mencocokkan dan menempatkan objek visual secara langsung di dalam ruangan (contoh: الْكِتَابُ تَحْتَ الطَّاوِلَةِ).',
       'ms-MY':
-        'Uji kefahaman ayat dengan memadankan dan menyusun objek visual secara langsung (contoh: الْكِتَابُ تَحْتَ الطَّاوِلَةِ).',
+        'Uji kefahaman ayat dengan memadankan dan menempatkan objek visual secara langsung di dalam bilik (contoh: الْكِتَابُ تَحْتَ الطَّاوِلَةِ).',
     },
     skillsTrained: [
       'sentence-comprehension',
@@ -69,6 +77,12 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     levelCount: 5,
     editorialStatus: 'curriculum-draft-pending-scholar-review',
     badgeColor: '#1D6B58',
+    recommendedAfterLocationId: 'street-explorer',
+    unlockMinCompletedStages: 0,
+    unlockRequirementLabel: {
+      'id-ID': 'Lokasi Dasar 2 · Terbuka sejak awal (Disarankan setelah Penjelajah Jalan)',
+      'ms-MY': 'Lokasi Asas 2 · Terbuka sejak awal (Dicadangkan selepas Penjelajah Jalan)',
+    },
   },
   {
     id: 'market',
@@ -94,6 +108,12 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     levelCount: 6,
     editorialStatus: 'curriculum-draft-pending-scholar-review',
     badgeColor: '#B4782C',
+    recommendedAfterLocationId: 'scene-lab',
+    unlockMinCompletedStages: 0,
+    unlockRequirementLabel: {
+      'id-ID': 'Lokasi Dasar 3 · Terbuka sejak awal (Disarankan setelah Laboratorium Adegan)',
+      'ms-MY': 'Lokasi Asas 3 · Terbuka sejak awal (Dicadangkan selepas Makmal Adegan)',
+    },
   },
   {
     id: 'sentence-bridge',
@@ -114,6 +134,12 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     levelCount: 4,
     editorialStatus: 'curriculum-draft-pending-scholar-review',
     badgeColor: '#2563EB',
+    recommendedAfterLocationId: 'market',
+    unlockMinCompletedStages: 1,
+    unlockRequirementLabel: {
+      'id-ID': 'Terbuka otomatis setelah menyelesaikan minimal 1 tahap dasar (atau aktifkan Mode Eksplorasi Bebas)',
+      'ms-MY': 'Terbuka secara automatik selepas menyelesaikan sekurang-kurangnya 1 tahap asas (atau aktifkan Mod Eksplorasi Bebas)',
+    },
   },
   {
     id: 'lost-message',
@@ -126,9 +152,9 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     },
     subtitle: {
       'id-ID':
-        'Misi cerita bercabang: baca petunjuk warga, pilih dialog bahasa Arab yang tepat, dan antarkan surat ke tujuan yang benar.',
+        'Misi cerita interaktif 4 bab: baca petunjuk warga, pilih respon bahasa Arab yang tepat, dan lihat dampaknya pada perjalanan surat.',
       'ms-MY':
-        'Misi cerita bercabang: baca petunjuk penduduk, pilih dialog bahasa Arab yang tepat dan hantarkan surat ke destinasi yang betul.',
+        'Misi cerita interaktif 4 bab: baca petunjuk penduduk, pilih respons bahasa Arab yang tepat dan lihat kesannya pada perjalanan surat.',
     },
     skillsTrained: [
       'sentence-comprehension',
@@ -138,6 +164,12 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     levelCount: 4,
     editorialStatus: 'curriculum-draft-pending-scholar-review',
     badgeColor: '#7C3AED',
+    recommendedAfterLocationId: 'sentence-bridge',
+    unlockMinCompletedStages: 2,
+    unlockRequirementLabel: {
+      'id-ID': 'Terbuka otomatis setelah menyelesaikan minimal 2 tahap di Dunia Makna',
+      'ms-MY': 'Terbuka secara automatik selepas menyelesaikan sekurang-kurangnya 2 tahap di Dunia Makna',
+    },
   },
   {
     id: 'word-detective',
@@ -150,14 +182,20 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     },
     subtitle: {
       'id-ID':
-        'Telusuri jaringan akar tiga huruf (كَتَبَ / كِتَاب / كَاتِب / مَكْتُوب) dan pahami bagaimana pola kata mengubah makna.',
+        'Peta jaringan akar tiga huruf interaktif (كَتَبَ / كِتَاب / كَاتِب / مَكْتُوب): amati bagaimana pola wazan mengubah makna dasar.',
       'ms-MY':
-        'Terokai rangkaian akar tiga huruf (كَتَبَ / كِتَاب / كَاتِب / مَكْتُوب) dan fahami bagaimana wazan perkataan mengubah makna.',
+        'Peta rangkaian akar tiga huruf interaktif (كَتَبَ / كِتَاب / كَاتِب / مَكْتُوب): perhatikan bagaimana wazan mengubah makna asas.',
     },
     skillsTrained: ['morphology-roots', 'word-recognition', 'quranic-vocabulary'],
     levelCount: 4,
     editorialStatus: 'curriculum-draft-pending-scholar-review',
     badgeColor: '#0D9488',
+    recommendedAfterLocationId: 'lost-message',
+    unlockMinCompletedStages: 3,
+    unlockRequirementLabel: {
+      'id-ID': 'Terbuka otomatis setelah menyelesaikan minimal 3 tahap di Dunia Makna',
+      'ms-MY': 'Terbuka secara automatik selepas menyelesaikan sekurang-kurangnya 3 tahap di Dunia Makna',
+    },
   },
   {
     id: 'quranic-discovery',
@@ -183,6 +221,12 @@ export const WORLD_LOCATIONS: WorldLocationMeta[] = [
     levelCount: 4,
     editorialStatus: 'verified-source',
     badgeColor: '#145A4A',
+    recommendedAfterLocationId: 'word-detective',
+    unlockMinCompletedStages: 0,
+    unlockRequirementLabel: {
+      'id-ID': 'Selalu Terbuka · Ruang Tadabbur Al-Qur’an dapat diakses kapan saja tanpa penguncian',
+      'ms-MY': 'Sentiasa Terbuka · Ruang Tadabbur al-Quran boleh diakses pada bila-bila masa tanpa kunci',
+    },
   },
 ];
 
@@ -2458,11 +2502,17 @@ export interface QuranicDiscoveryPassage {
   surahNumber: number;
   ayahNumber: number;
   arabicVerse: string;
+  arabicTextSource: string;
   transliteration: string;
   verifiedTranslation: LocalizedText;
   translationSource: LocalizedText;
+  translationLicense: LocalizedText;
   sourceUrl: string;
   audioUrl: string;
+  audioReciterSource: string;
+  audioLicense: LocalizedText;
+  editorialStatus: EditorialStatus;
+  editorialVerificationNote: LocalizedText;
   connectedLessonId: string;
   worldBridgeNote: LocalizedText;
   highlightedTokens: Array<{
@@ -2487,6 +2537,7 @@ export const QURANIC_DISCOVERY_PASSAGES: QuranicDiscoveryPassage[] = [
     surahNumber: 2,
     ayahNumber: 2,
     arabicVerse: 'ذَٰلِكَ ٱلْكِتَـٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ',
+    arabicTextSource: 'Tanzil.net · Mushaf Al-Madinah An-Nabawiyyah (Rasm Utsmani)',
     transliteration: 'Dzalikal-kitabu la rayba fihi hudan lil-muttaqina',
     verifiedTranslation: {
       'id-ID': 'Kitab (Al-Qur’an) ini tidak ada keraguan padanya; petunjuk bagi mereka yang bertakwa.',
@@ -2496,8 +2547,22 @@ export const QURANIC_DISCOVERY_PASSAGES: QuranicDiscoveryPassage[] = [
       'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (Edisi Penyempurnaan 2019)',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman kepada Pengertian al-Quran (JAKIM Malaysia)',
     },
+    translationLicense: {
+      'id-ID': 'Kutipan teks terjemahan resmi pemerintah (Kemenag RI) untuk keperluan pendidikan non-komersial dengan atribusi sumber utuh.',
+      'ms-MY': 'Petikan teks terjemahan rasmi (JAKIM Malaysia) untuk tujuan pendidikan bukan komersial dengan atribusi sumber penuh.',
+    },
     sourceUrl: 'https://quran.com/2/2',
     audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/002002.mp3',
+    audioReciterSource: 'Syaikh Mishary Rashid Alafasy (EveryAyah.com · 128kbps MP3)',
+    audioLicense: {
+      'id-ID': 'Rekaman tilawah publik melalui layanan EveryAyah.com untuk penggunaan edukasi Al-Qur’an non-komersial.',
+      'ms-MY': 'Rakaman tilawah awam melalui perkhidmatan EveryAyah.com untuk kegunaan pendidikan al-Quran bukan komersial.',
+    },
+    editorialStatus: 'verified-source',
+    editorialVerificationNote: {
+      'id-ID': 'Teks Rasm Utsmani dan terjemahan dicocokkan dengan rujukan resmi Kemenag RI / Tanzil. Catatan jembatan bahasa adalah penjelasan kurikulum Faham Ayat (belum melalui pengesahan dewan pentashih eksternal).',
+      'ms-MY': 'Teks Rasm Uthmani dan terjemahan disemak silang dengan rujukan rasmi JAKIM / Tanzil. Nota jambatan bahasa ialah penjelasan kurikulum Faham Ayat (belum melalui pengesahan panel pentashih luar).',
+    },
     connectedLessonId: 'lesson-ayah-3',
     worldBridgeNote: {
       'id-ID': 'Di Laboratorium Adegan, Pasar, dan Detektif Kata, Anda telah berinteraksi dengan kata الْكِتَاب (buku/kitab) dari akar ك-ت-ب. Di awal Surah Al-Baqarah, kata ٱلْكِتَـٰبُ merujuk pada Al-Qur’an yang mulia.',
@@ -2563,21 +2628,36 @@ export const QURANIC_DISCOVERY_PASSAGES: QuranicDiscoveryPassage[] = [
   },
   {
     id: 'qd-2',
-    verseRef: 'QS. Al-Fatihah 1:1–2',
+    verseRef: 'QS. Al-Fatihah 1:2',
     surahNumber: 1,
     ayahNumber: 2,
     arabicVerse: 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ',
+    arabicTextSource: 'Tanzil.net · Mushaf Al-Madinah An-Nabawiyyah (Rasm Utsmani)',
     transliteration: 'Al-hamdu lillahi Rabbil-‘alamina',
     verifiedTranslation: {
       'id-ID': 'Segala puji bagi Allah, Tuhan seluruh alam.',
       'ms-MY': 'Segala puji tertentu bagi Allah, Tuhan yang memelihara dan mentadbirkan sekalian alam.',
     },
     translationSource: {
-      'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (2019)',
-      'ms-MY': 'Tafsir Pimpinan Ar-Rahman (JAKIM Malaysia)',
+      'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (Edisi Penyempurnaan 2019)',
+      'ms-MY': 'Tafsir Pimpinan Ar-Rahman kepada Pengertian al-Quran (JAKIM Malaysia)',
+    },
+    translationLicense: {
+      'id-ID': 'Kutipan teks terjemahan resmi pemerintah (Kemenag RI) untuk keperluan pendidikan non-komersial dengan atribusi sumber utuh.',
+      'ms-MY': 'Petikan teks terjemahan rasmi (JAKIM Malaysia) untuk tujuan pendidikan bukan komersial dengan atribusi sumber penuh.',
     },
     sourceUrl: 'https://quran.com/1/2',
     audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001002.mp3',
+    audioReciterSource: 'Syaikh Mishary Rashid Alafasy (EveryAyah.com · 128kbps MP3)',
+    audioLicense: {
+      'id-ID': 'Rekaman tilawah publik melalui layanan EveryAyah.com untuk penggunaan edukasi Al-Qur’an non-komersial.',
+      'ms-MY': 'Rakaman tilawah awam melalui perkhidmatan EveryAyah.com untuk kegunaan pendidikan al-Quran bukan komersial.',
+    },
+    editorialStatus: 'verified-source',
+    editorialVerificationNote: {
+      'id-ID': 'Teks Rasm Utsmani dan terjemahan dicocokkan dengan rujukan resmi Kemenag RI / Tanzil. Catatan jembatan bahasa adalah penjelasan kurikulum Faham Ayat.',
+      'ms-MY': 'Teks Rasm Uthmani dan terjemahan disemak silang dengan rujukan rasmi JAKIM / Tanzil. Nota jambatan bahasa ialah penjelasan kurikulum Faham Ayat.',
+    },
     connectedLessonId: 'lesson-ayah-2',
     worldBridgeNote: {
       'id-ID': 'Di Jembatan Kalimat dan Detektif Kata, Anda telah menyusun kalimat ini dan menelusuri akar kata ع-ل-م pada ٱلْعَـٰلَمِينَ.',
@@ -2647,17 +2727,32 @@ export const QURANIC_DISCOVERY_PASSAGES: QuranicDiscoveryPassage[] = [
     surahNumber: 1,
     ayahNumber: 5,
     arabicVerse: 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ',
+    arabicTextSource: 'Tanzil.net · Mushaf Al-Madinah An-Nabawiyyah (Rasm Utsmani)',
     transliteration: 'Iyyaka na‘budu wa iyyaka nasta‘inu',
     verifiedTranslation: {
       'id-ID': 'Hanya kepada Engkaulah kami menyembah dan hanya kepada Engkaulah kami mohon pertolongan.',
       'ms-MY': 'Engkaulah sahaja (Ya Allah) Yang Kami sembah, dan kepada Engkaulah sahaja kami memohon pertolongan.',
     },
     translationSource: {
-      'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (2019)',
-      'ms-MY': 'Tafsir Pimpinan Ar-Rahman (JAKIM Malaysia)',
+      'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (Edisi Penyempurnaan 2019)',
+      'ms-MY': 'Tafsir Pimpinan Ar-Rahman kepada Pengertian al-Quran (JAKIM Malaysia)',
+    },
+    translationLicense: {
+      'id-ID': 'Kutipan teks terjemahan resmi pemerintah (Kemenag RI) untuk keperluan pendidikan non-komersial dengan atribusi sumber utuh.',
+      'ms-MY': 'Petikan teks terjemahan rasmi (JAKIM Malaysia) untuk tujuan pendidikan bukan komersial dengan atribusi sumber penuh.',
     },
     sourceUrl: 'https://quran.com/1/5',
     audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001005.mp3',
+    audioReciterSource: 'Syaikh Mishary Rashid Alafasy (EveryAyah.com · 128kbps MP3)',
+    audioLicense: {
+      'id-ID': 'Rekaman tilawah publik melalui layanan EveryAyah.com untuk penggunaan edukasi Al-Qur’an non-komersial.',
+      'ms-MY': 'Rakaman tilawah awam melalui perkhidmatan EveryAyah.com untuk kegunaan pendidikan al-Quran bukan komersial.',
+    },
+    editorialStatus: 'verified-source',
+    editorialVerificationNote: {
+      'id-ID': 'Teks Rasm Utsmani dan terjemahan dicocokkan dengan rujukan resmi Kemenag RI / Tanzil. Catatan jembatan bahasa adalah penjelasan kurikulum Faham Ayat.',
+      'ms-MY': 'Teks Rasm Uthmani dan terjemahan disemak silang dengan rujukan rasmi JAKIM / Tanzil. Nota jambatan bahasa ialah penjelasan kurikulum Faham Ayat.',
+    },
     connectedLessonId: 'lesson-prayer-1',
     worldBridgeNote: {
       'id-ID': 'Di Jembatan Kalimat, Anda melihat bagaimana urutan kata dalam bahasa Arab membawa penekanan makna. Pada ayat ini, objek إِيَّاكَ (Hanya kepada Engkau) didahulukan sebelum kata kerja نَعْبُدُ untuk menegaskan pengkhususan ibadah semata-mata kepada Allah.',
@@ -2717,17 +2812,32 @@ export const QURANIC_DISCOVERY_PASSAGES: QuranicDiscoveryPassage[] = [
     surahNumber: 2,
     ayahNumber: 186,
     arabicVerse: 'وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ',
+    arabicTextSource: 'Tanzil.net · Mushaf Al-Madinah An-Nabawiyyah (Rasm Utsmani)',
     transliteration: 'Wa idza sa’alaka ‘ibadi ‘anni fa-inni qaribun',
     verifiedTranslation: {
       'id-ID': 'Dan apabila hamba-hamba-Ku bertanya kepadamu (Muhammad) tentang Aku, maka sesungguhnya Aku dekat.',
       'ms-MY': 'Dan apabila hamba-hamba-Ku bertanya kepadamu mengenai Aku maka (beritahu kepada mereka): sesungguhnya Aku (Allah) sentiasa hampir (kepada mereka).',
     },
     translationSource: {
-      'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (2019)',
-      'ms-MY': 'Tafsir Pimpinan Ar-Rahman (JAKIM Malaysia)',
+      'id-ID': 'Terjemahan Al-Qur’an Kementerian Agama RI (Edisi Penyempurnaan 2019)',
+      'ms-MY': 'Tafsir Pimpinan Ar-Rahman kepada Pengertian al-Quran (JAKIM Malaysia)',
+    },
+    translationLicense: {
+      'id-ID': 'Kutipan teks terjemahan resmi pemerintah (Kemenag RI) untuk keperluan pendidikan non-komersial dengan atribusi sumber utuh.',
+      'ms-MY': 'Petikan teks terjemahan rasmi (JAKIM Malaysia) untuk tujuan pendidikan bukan komersial dengan atribusi sumber penuh.',
     },
     sourceUrl: 'https://quran.com/2/186',
     audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/002186.mp3',
+    audioReciterSource: 'Syaikh Mishary Rashid Alafasy (EveryAyah.com · 128kbps MP3)',
+    audioLicense: {
+      'id-ID': 'Rekaman tilawah publik melalui layanan EveryAyah.com untuk penggunaan edukasi Al-Qur’an non-komersial.',
+      'ms-MY': 'Rakaman tilawah awam melalui perkhidmatan EveryAyah.com untuk kegunaan pendidikan al-Quran bukan komersial.',
+    },
+    editorialStatus: 'verified-source',
+    editorialVerificationNote: {
+      'id-ID': 'Teks Rasm Utsmani dan terjemahan dicocokkan dengan rujukan resmi Kemenag RI / Tanzil. Catatan jembatan bahasa adalah penjelasan kurikulum Faham Ayat.',
+      'ms-MY': 'Teks Rasm Uthmani dan terjemahan disemak silang dengan rujukan rasmi JAKIM / Tanzil. Nota jambatan bahasa ialah penjelasan kurikulum Faham Ayat.',
+    },
     connectedLessonId: 'lesson-ayah-4',
     worldBridgeNote: {
       'id-ID': 'Di Penjelajah Jalan Level 5, Anda mempelajari kata قَرِيبٌ (dekat) sebagai lawan dari بَعِيدٌ (jauh). Di dalam QS. Al-Baqarah 2:186, kata قَرِيبٌ hadir dalam pesan yang sangat menyentuh hati: «فَإِنِّي قَرِيبٌ» ("Maka sesungguhnya Aku dekat").',

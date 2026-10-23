@@ -67,10 +67,31 @@ class RecitationAudioController {
     return this.lastMode;
   }
 
+  public playQuranicRecitation(options: {
+    audioUrl: string;
+    rate?: number;
+    onModeChange?: (mode: AudioPlaybackMode) => void;
+    onTimeUpdate?: (currentSeconds: number, durationSeconds: number) => void;
+    onStart?: () => void;
+    onEnd?: () => void;
+  }): void {
+    this.playVerifiedOrFallback({
+      arabicText: '',
+      audioUrl: options.audioUrl,
+      rate: options.rate,
+      allowSyntheticFallback: false,
+      onModeChange: options.onModeChange,
+      onTimeUpdate: options.onTimeUpdate,
+      onStart: options.onStart,
+      onEnd: options.onEnd,
+    });
+  }
+
   public playVerifiedOrFallback(options: {
     arabicText: string;
     audioUrl?: string;
     rate?: number;
+    allowSyntheticFallback?: boolean;
     onModeChange?: (mode: AudioPlaybackMode) => void;
     onTimeUpdate?: (currentSeconds: number, durationSeconds: number) => void;
     onStart?: () => void;
@@ -80,6 +101,7 @@ class RecitationAudioController {
       arabicText,
       audioUrl,
       rate = 1.0,
+      allowSyntheticFallback = true,
       onModeChange,
       onTimeUpdate,
       onStart,
@@ -87,6 +109,18 @@ class RecitationAudioController {
     } = options;
 
     this.stop();
+
+    const handleRecordingFailure = () => {
+      this.cleanupAudioElement();
+      if (!allowSyntheticFallback) {
+        this.isPlayingState = false;
+        this.lastMode = 'unavailable';
+        onModeChange?.('unavailable');
+        onEnd?.();
+        return;
+      }
+      this.trySyntheticArabicTts(arabicText, rate, onModeChange, onStart, onEnd);
+    };
 
     if (audioUrl && typeof window !== 'undefined' && typeof Audio !== 'undefined') {
       try {
@@ -104,8 +138,7 @@ class RecitationAudioController {
         const loadTimeout = window.setTimeout(() => {
           if (!settled) {
             settled = true;
-            this.cleanupAudioElement();
-            this.trySyntheticArabicTts(arabicText, rate, onModeChange, onStart, onEnd);
+            handleRecordingFailure();
           }
         }, 3500);
 
@@ -139,8 +172,7 @@ class RecitationAudioController {
           if (!settled) {
             settled = true;
             clearTimeout(loadTimeout);
-            this.cleanupAudioElement();
-            this.trySyntheticArabicTts(arabicText, rate, onModeChange, onStart, onEnd);
+            handleRecordingFailure();
           }
         };
 
@@ -150,8 +182,7 @@ class RecitationAudioController {
             if (!settled) {
               settled = true;
               clearTimeout(loadTimeout);
-              this.cleanupAudioElement();
-              this.trySyntheticArabicTts(arabicText, rate, onModeChange, onStart, onEnd);
+              handleRecordingFailure();
             }
           });
         }
@@ -159,6 +190,14 @@ class RecitationAudioController {
       } catch {
         this.cleanupAudioElement();
       }
+    }
+
+    if (!allowSyntheticFallback) {
+      this.isPlayingState = false;
+      this.lastMode = 'unavailable';
+      onModeChange?.('unavailable');
+      onEnd?.();
+      return;
     }
 
     this.trySyntheticArabicTts(arabicText, rate, onModeChange, onStart, onEnd);
@@ -218,7 +257,6 @@ class RecitationAudioController {
     onEnd?.();
   }
 
-  // Backward-compatible method used by components; routes strictly through playVerifiedOrFallback
   public speakArabic(
     arabicText: string,
     rate = 0.85,
@@ -236,6 +274,7 @@ class RecitationAudioController {
       arabicText,
       audioUrl: resolvedUrl,
       rate,
+      allowSyntheticFallback: !resolvedUrl,
       onModeChange,
       onStart,
       onEnd,

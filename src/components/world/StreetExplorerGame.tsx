@@ -16,12 +16,15 @@ import {
   Compass,
   Sparkles,
   Star,
+  MapPin,
+  Flag,
 } from 'lucide-react';
 
 interface StreetExplorerGameProps {
   locale: LocaleCode;
   showTransliteration: boolean;
   reducedMotion?: boolean;
+  isPaused?: boolean;
   completedLevels: Record<string, { stars: number }>;
   onRecordAttempt: (
     levelNumber: number,
@@ -38,6 +41,7 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
   locale,
   showTransliteration,
   reducedMotion,
+  isPaused = false,
   completedLevels,
   onRecordAttempt,
 }) => {
@@ -48,6 +52,10 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
   const [playerPos, setPlayerPos] = useState<{ x: number; y: number }>(
     currentLevel.startPos
   );
+  const [facing, setFacing] = useState<DirectionMove>('up');
+  const [visitedCoords, setVisitedCoords] = useState<
+    Array<{ x: number; y: number }>
+  >([currentLevel.startPos]);
   const [hasPassedIntermediate, setHasPassedIntermediate] = useState<boolean>(
     !currentLevel.requiredIntermediatePos
   );
@@ -61,20 +69,19 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
   const [revealListenText, setRevealListenText] = useState<boolean>(false);
   const [audioMode, setAudioMode] = useState<AudioPlaybackMode>('idle');
 
-  const resetLevel = useCallback(
-    (levelIdx: number) => {
-      const lvl =
-        STREET_EXPLORER_LEVELS[levelIdx] || STREET_EXPLORER_LEVELS[0];
-      setPlayerPos(lvl.startPos);
-      setHasPassedIntermediate(!lvl.requiredIntermediatePos);
-      setStepHistory([]);
-      setMistakesCount(0);
-      setStatusFeedback(null);
-      setIsLevelComplete(false);
-      setRevealListenText(false);
-    },
-    []
-  );
+  const resetLevel = useCallback((levelIdx: number) => {
+    const lvl =
+      STREET_EXPLORER_LEVELS[levelIdx] || STREET_EXPLORER_LEVELS[0];
+    setPlayerPos(lvl.startPos);
+    setFacing('up');
+    setVisitedCoords([lvl.startPos]);
+    setHasPassedIntermediate(!lvl.requiredIntermediatePos);
+    setStepHistory([]);
+    setMistakesCount(0);
+    setStatusFeedback(null);
+    setIsLevelComplete(false);
+    setRevealListenText(false);
+  }, []);
 
   useEffect(() => {
     resetLevel(activeLevelIdx);
@@ -82,8 +89,9 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
 
   const handleMove = useCallback(
     (move: DirectionMove) => {
-      if (isLevelComplete) return;
+      if (isLevelComplete || isPaused) return;
 
+      setFacing(move);
       const outcome = stepStreetExplorer(
         currentLevel,
         playerPos,
@@ -95,6 +103,15 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
       setPlayerPos(outcome.nextPos);
       setHasPassedIntermediate(outcome.reachedIntermediate);
       setStepHistory((prev) => [...prev.slice(-7), outcome.arabicDirectionUsed]);
+
+      if (!outcome.hitObstacle) {
+        setVisitedCoords((prev) => {
+          const exists = prev.some(
+            (c) => c.x === outcome.nextPos.x && c.y === outcome.nextPos.y
+          );
+          return exists ? prev : [...prev, outcome.nextPos];
+        });
+      }
 
       if (outcome.hitObstacle || outcome.wrongLandmarkReached) {
         const nextMistakes = mistakesCount + 1;
@@ -119,7 +136,8 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
 
       if (outcome.reachedTarget) {
         setIsLevelComplete(true);
-        const msg = outcome.feedback?.[locale] || currentLevel.successExplanation[locale];
+        const msg =
+          outcome.feedback?.[locale] || currentLevel.successExplanation[locale];
         setStatusFeedback({ type: 'success', text: msg });
         onRecordAttempt(
           currentLevel.levelNumber,
@@ -137,13 +155,33 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
           text: outcome.feedback[locale],
         });
       } else {
-        setStatusFeedback(null);
+        const stepSuccessMsg =
+          locale === 'id-ID'
+            ? `Melangkah ${outcome.arabicDirectionUsed}.${
+                outcome.reachedIntermediate &&
+                !hasPassedIntermediate &&
+                currentLevel.requiredIntermediatePos
+                  ? ' Anda telah melewati titik persimpangan! Lanjutkan ke tujuan akhir.'
+                  : ''
+              }`
+            : `Melangkah ${outcome.arabicDirectionUsed}.${
+                outcome.reachedIntermediate &&
+                !hasPassedIntermediate &&
+                currentLevel.requiredIntermediatePos
+                  ? ' Anda telah melalui titik persimpangan! Teruskan ke destinasi akhir.'
+                  : ''
+              }`;
+        setStatusFeedback({
+          type: 'neutral',
+          text: stepSuccessMsg,
+        });
       }
     },
     [
       currentLevel,
       hasPassedIntermediate,
       isLevelComplete,
+      isPaused,
       locale,
       mistakesCount,
       onRecordAttempt,
@@ -151,9 +189,10 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
     ]
   );
 
-  // Keyboard navigation listener (Arrow keys + WASD)
+  // Keyboard navigation listener (Arrow keys + WASD), disabled when paused
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isPaused || isLevelComplete) return;
       if (
         document.activeElement &&
         ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)
@@ -176,16 +215,18 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleMove]);
+  }, [handleMove, isPaused, isLevelComplete]);
 
   const handlePlayInstructionAudio = () => {
     audioController.playVerifiedOrFallback({
       arabicText: currentLevel.arabicInstruction,
+      allowSyntheticFallback: true,
       onModeChange: setAudioMode,
     });
   };
 
   const handleTileClick = (x: number, y: number) => {
+    if (isPaused || isLevelComplete) return;
     const dx = x - playerPos.x;
     const dy = y - playerPos.y;
     if (Math.abs(dx) + Math.abs(dy) === 1) {
@@ -196,24 +237,145 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
     }
   };
 
+  const renderBuildingSvg = (kind: StreetLandmark['kind']) => {
+    switch (kind) {
+      case 'masjid':
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <path d="M8 14 C8 6, 24 6, 24 14 Z" fill="#FDE68A" />
+            <rect x="6" y="14" width="20" height="12" rx="2" fill="#065F46" />
+            <rect x="27" y="4" width="4" height="22" rx="1" fill="#047857" />
+            <polygon points="29,1 26,5 32,5" fill="#FDE68A" />
+            <rect x="13" y="18" width="6" height="8" rx="3" fill="#FEF3C7" />
+          </svg>
+        );
+      case 'library':
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <polygon points="4,10 18,3 32,10" fill="#B45309" />
+            <rect x="6" y="10" width="24" height="16" rx="2" fill="#78350F" />
+            <path d="M12 14 L18 16 L24 14 L24 22 L18 24 L12 22 Z" fill="#FEF3C7" />
+          </svg>
+        );
+      case 'market':
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <rect x="5" y="12" width="26" height="14" rx="2" fill="#9A3412" />
+            <path d="M3 12 L8 5 L28 5 L33 12 Z" fill="#F97316" />
+            <rect x="11" y="5" width="5" height="7" fill="#FFEDD5" />
+            <rect x="21" y="5" width="5" height="7" fill="#FFEDD5" />
+            <rect x="14" y="17" width="8" height="9" rx="1" fill="#FDE68A" />
+          </svg>
+        );
+      case 'house-blue':
+      case 'house-red':
+      case 'house-green': {
+        const roofFill =
+          kind === 'house-blue'
+            ? '#1D4ED8'
+            : kind === 'house-red'
+            ? '#BE123C'
+            : '#047857';
+        const wallFill =
+          kind === 'house-blue'
+            ? '#DBEAFE'
+            : kind === 'house-red'
+            ? '#FFE4E6'
+            : '#D1FAE5';
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <polygon points="5,12 18,3 31,12" fill={roofFill} />
+            <rect x="8" y="12" width="20" height="14" rx="2" fill={wallFill} stroke={roofFill} strokeWidth="1.5" />
+            <rect x="15" y="17" width="6" height="9" rx="1" fill={roofFill} />
+          </svg>
+        );
+      }
+      case 'bridge':
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <rect x="2" y="18" width="32" height="8" rx="2" fill="#38BDF8" />
+            <path d="M4 18 Q18 6 32 18" stroke="#92400E" strokeWidth="4" fill="none" />
+          </svg>
+        );
+      case 'fountain':
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <ellipse cx="18" cy="21" rx="13" ry="5" fill="#0284C7" />
+            <path d="M18 20 L18 8 M18 10 Q12 12 11 18 M18 10 Q24 12 25 18" stroke="#BAE6FD" strokeWidth="2.5" fill="none" />
+          </svg>
+        );
+      case 'tree':
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <rect x="16" y="16" width="4" height="10" fill="#78350F" />
+            <circle cx="18" cy="11" r="8" fill="#15803D" />
+            <circle cx="13" cy="14" r="5" fill="#166534" />
+            <circle cx="23" cy="14" r="5" fill="#166534" />
+          </svg>
+        );
+      default:
+        return (
+          <svg viewBox="0 0 36 28" className="w-7 h-6 mx-auto" aria-hidden="true">
+            <rect x="6" y="8" width="24" height="16" rx="3" fill="#0F766E" />
+            <rect x="14" y="14" width="8" height="10" rx="2" fill="#CCFBF1" />
+          </svg>
+        );
+    }
+  };
+
   const renderLandmarkBadge = (landmark: StreetLandmark) => {
     const colorMap: Record<string, string> = {
       masjid: 'bg-emerald-900 text-white border-emerald-700',
       library: 'bg-amber-900 text-white border-amber-700',
       market: 'bg-orange-800 text-white border-orange-600',
-      'house-blue': 'bg-blue-700 text-white border-blue-500',
-      'house-red': 'bg-rose-700 text-white border-rose-500',
-      'house-green': 'bg-emerald-700 text-white border-emerald-500',
+      'house-blue': 'bg-blue-800 text-white border-blue-600',
+      'house-red': 'bg-rose-800 text-white border-rose-600',
+      'house-green': 'bg-emerald-800 text-white border-emerald-600',
       bridge: 'bg-cyan-800 text-white border-cyan-600',
-      fountain: 'bg-sky-700 text-white border-sky-500',
-      bench: 'bg-stone-700 text-white border-stone-500',
+      fountain: 'bg-sky-800 text-white border-sky-600',
+      bench: 'bg-stone-800 text-white border-stone-600',
       tree: 'bg-green-800 text-white border-green-600',
-      'rooftop-high': 'bg-indigo-800 text-white border-indigo-500',
-      'courtyard-inside': 'bg-teal-800 text-white border-teal-500',
-      'courtyard-outside': 'bg-slate-700 text-white border-slate-500',
+      'rooftop-high': 'bg-indigo-800 text-white border-indigo-600',
+      'courtyard-inside': 'bg-teal-800 text-white border-teal-600',
+      'courtyard-outside': 'bg-slate-800 text-white border-slate-600',
     };
     return colorMap[landmark.kind] || 'bg-[#145A4A] text-white border-[#145A4A]';
   };
+
+  const renderTravelerAvatar = () => {
+    const arrowRotation =
+      facing === 'up'
+        ? 'rotate(0)'
+        : facing === 'right'
+        ? 'rotate(90)'
+        : facing === 'down'
+        ? 'rotate(180)'
+        : 'rotate(270)';
+
+    return (
+      <div
+        data-testid="street-player-avatar"
+        data-pos={`${playerPos.x},${playerPos.y}`}
+        className={`mt-0.5 px-2 py-0.5 rounded-full bg-[#145A4A] text-white text-[10px] font-bold inline-flex items-center gap-1 shadow-sm border border-[#FDE68A] ${
+          reducedMotion ? '' : 'transition-all duration-150'
+        }`}
+      >
+        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" aria-hidden="true">
+          <circle cx="12" cy="7" r="4" fill="#FDE68A" />
+          <path d="M6 20 C6 14, 18 14, 18 20 Z" fill="#FFFFFF" />
+          <g transform={`translate(12, 12) ${arrowRotation} translate(-12, -12)`}>
+            <polygon points="12,1 9,4 15,4" fill="#34D399" />
+          </g>
+        </svg>
+        <span>{locale === 'id-ID' ? 'المُسَافِر' : 'المُسَافِر'}</span>
+      </div>
+    );
+  };
+
+  const targetLandmark = currentLevel.landmarks.find(
+    (lm) =>
+      lm.x === currentLevel.targetPos.x && lm.y === currentLevel.targetPos.y
+  );
 
   return (
     <div className="space-y-6">
@@ -239,7 +401,10 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
               {done && (
                 <span className="inline-flex items-center gap-0.5 text-amber-500">
                   {Array.from({ length: done.stars }).map((_, sIdx) => (
-                    <Star key={sIdx} className="w-3 h-3 fill-amber-500 text-amber-500" />
+                    <Star
+                      key={sIdx}
+                      className="w-3 h-3 fill-amber-500 text-amber-500"
+                    />
                   ))}
                 </span>
               )}
@@ -248,9 +413,9 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
         })}
       </div>
 
-      {/* Main Split Game Sandbox: Left = 2D Top-Down Interactive Neighborhood Grid, Right = Arabic Command & Controls */}
+      {/* Main Split Game Sandbox: Left = Illustrated Interactive Neighborhood, Right = Arabic Command & Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left 7 Cols: Interactive 2D Neighborhood Grid */}
+        {/* Left 7 Cols: Illustrated 2D Neighborhood Map */}
         <div className="lg:col-span-7 bg-white rounded-2xl p-5 sm:p-6 border border-[#1C2724]/12 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#1C2724]/10">
             <div>
@@ -261,16 +426,21 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
                 {currentLevel.pedagogicalFocus[locale]}
               </p>
             </div>
-            {currentLevel.isUnfamiliarTransferMap && (
-              <span className="text-xs font-semibold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-300">
-                {locale === 'id-ID'
-                  ? 'Peta Lingkungan Baru (Uji Transfer)'
-                  : 'Peta Kejiranan Baharu (Ujian Pemindahan)'}
-              </span>
+            {targetLandmark && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-300 text-xs font-semibold text-amber-950">
+                <Flag className="w-3.5 h-3.5 text-amber-700" />
+                <span>
+                  {locale === 'id-ID' ? 'Tujuan:' : 'Destinasi:'}{' '}
+                  <strong dir="rtl" lang="ar" className="font-arabic text-sm">
+                    {targetLandmark.arabicLabel}
+                  </strong>{' '}
+                  ({targetLandmark.label[locale]})
+                </span>
+              </div>
             )}
           </div>
 
-          {/* Compass Legend */}
+          {/* Compass & Map Legend */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#1C2724]/75 bg-[#F7F5EF] px-3.5 py-2 rounded-xl border border-[#1C2724]/10">
             <div className="flex items-center gap-1.5 font-semibold text-[#145A4A]">
               <Compass className="w-4 h-4" />
@@ -286,12 +456,12 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
             </div>
           </div>
 
-          {/* 5x5 Interactive Neighborhood Map Grid */}
+          {/* 5x5 Illustrated Neighborhood Board */}
           <div
             role="grid"
             aria-label="Arabic Street Explorer 2D Map"
             data-testid="street-explorer-grid"
-            className="grid grid-cols-5 gap-2 sm:gap-2.5 bg-[#E6EFEA] p-3 sm:p-4 rounded-2xl border-2 border-[#145A4A]/25"
+            className="grid grid-cols-5 gap-2 sm:gap-2.5 bg-[#D8E6DF] p-3 sm:p-4 rounded-2xl border-2 border-[#145A4A]/30 shadow-inner"
           >
             {Array.from({ length: 5 }).map((_, y) =>
               Array.from({ length: 5 }).map((__, x) => {
@@ -299,6 +469,9 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
                 const isStart =
                   currentLevel.startPos.x === x &&
                   currentLevel.startPos.y === y;
+                const isTarget =
+                  currentLevel.targetPos.x === x &&
+                  currentLevel.targetPos.y === y;
                 const isIntermediate =
                   currentLevel.requiredIntermediatePos?.x === x &&
                   currentLevel.requiredIntermediatePos?.y === y;
@@ -311,91 +484,134 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
                 const isAdjacent =
                   Math.abs(x - playerPos.x) + Math.abs(y - playerPos.y) === 1 &&
                   !isBlocked;
+                const wasVisited = visitedCoords.some(
+                  (c) => c.x === x && c.y === y
+                );
 
                 return (
                   <button
                     key={`${x}-${y}`}
                     type="button"
-                    disabled={isBlocked}
+                    disabled={isBlocked || isLevelComplete}
                     onClick={() => handleTileClick(x, y)}
                     aria-label={
                       landmark
-                        ? `Tile ${x},${y} ${landmark.arabicLabel} ${landmark.label[locale]}`
+                        ? `${landmark.arabicLabel} (${landmark.label[locale]})${
+                            isTarget ? ' - Destination' : ''
+                          }`
                         : isBlocked
-                        ? `Tile ${x},${y} Blocked`
-                        : `Road Tile ${x},${y}`
-                    }
-                    className={`relative min-h-[76px] sm:min-h-[92px] rounded-xl p-1.5 flex flex-col items-center justify-between text-center border transition-all ${
-                      isBlocked
-                        ? 'bg-[#CBD5E1] border-slate-400 cursor-not-allowed opacity-75'
-                        : isPlayerHere
-                        ? 'bg-[#FEF3C7] border-2 border-[#145A4A] shadow-md ring-2 ring-[#145A4A]/30'
+                        ? locale === 'id-ID'
+                          ? 'Taman & Tembok Pembatas'
+                          : 'Taman & Tembok Sempadan'
                         : isAdjacent
-                        ? 'bg-[#F7F5EF] border-[#145A4A]/40 hover:bg-white cursor-pointer'
-                        : 'bg-[#F7F5EF]/90 border-[#1C2724]/12'
+                        ? locale === 'id-ID'
+                          ? 'Melangkah ke Jalan Ini'
+                          : 'Melangkah ke Jalan Ini'
+                        : locale === 'id-ID'
+                        ? 'Jalur Jalan Lingkungan'
+                        : 'Laluan Jalan Kejiranan'
+                    }
+                    className={`relative min-h-[86px] sm:min-h-[100px] rounded-xl p-1.5 flex flex-col items-center justify-between text-center border transition-all overflow-hidden ${
+                      isBlocked
+                        ? 'bg-[#BCCBC4] border-[#94A89E] cursor-not-allowed'
+                        : isPlayerHere
+                        ? 'bg-[#FEF3C7] border-2 border-[#145A4A] shadow-md ring-2 ring-[#145A4A]/35'
+                        : isTarget
+                        ? 'bg-[#ECFDF5] border-2 border-[#059669] hover:bg-white cursor-pointer'
+                        : isAdjacent
+                        ? 'bg-[#FBF9F5] border-2 border-[#145A4A]/45 hover:bg-white cursor-pointer'
+                        : wasVisited
+                        ? 'bg-[#F3EFE6] border-[#145A4A]/25'
+                        : 'bg-[#F7F5EF] border-[#1C2724]/12'
                     }`}
                   >
-                    {/* Coordinate & Waypoint indicator */}
-                    <div className="w-full flex items-center justify-between text-[10px] text-[#1C2724]/55 px-1">
-                      <span className="tabular-nums">
-                        {x},{y}
-                      </span>
-                      {isIntermediate && !hasPassedIntermediate && (
-                        <span className="text-[#145A4A] font-bold">
-                          {locale === 'id-ID' ? 'Persimpangan' : 'Simpang'}
+                    {/* Top Status Ribbon (Target / Waypoint / Start — no developer coordinates) */}
+                    <div className="w-full flex items-center justify-center min-h-[14px]">
+                      {isTarget ? (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-bold tracking-tight flex items-center gap-0.5">
+                          <MapPin className="w-2.5 h-2.5 shrink-0" />
+                          <span>{locale === 'id-ID' ? 'Tujuan' : 'Tujuan'}</span>
                         </span>
-                      )}
-                      {isStart && !isPlayerHere && (
-                        <span>{locale === 'id-ID' ? 'Mulai' : 'Mula'}</span>
-                      )}
+                      ) : isIntermediate && !hasPassedIntermediate ? (
+                        <span className="px-1.5 py-0.5 rounded bg-[#145A4A] text-white text-[9px] font-bold">
+                          {locale === 'id-ID' ? 'Titik Belok' : 'Titik Belok'}
+                        </span>
+                      ) : isStart && !isPlayerHere ? (
+                        <span className="text-[9px] font-semibold text-[#145A4A]/80">
+                          {locale === 'id-ID' ? 'Titik Mulai' : 'Titik Mula'}
+                        </span>
+                      ) : wasVisited && !isPlayerHere && !landmark ? (
+                        <span className="text-[9px] font-semibold text-[#145A4A]/65">
+                          {locale === 'id-ID' ? 'Jejak' : 'Jejak'}
+                        </span>
+                      ) : null}
                     </div>
 
-                    {/* Landmark or Obstacle or Road */}
+                    {/* Center Visual: Obstacle Wall/Garden, Illustrated Landmark Building, or Connected Street */}
                     {isBlocked ? (
-                      <div className="my-auto text-[11px] font-semibold text-slate-600">
-                        {locale === 'id-ID' ? 'Tembok / Pagar' : 'Tembok / Pagar'}
+                      <div className="my-auto flex flex-col items-center gap-0.5">
+                        <svg
+                          viewBox="0 0 36 24"
+                          className="w-7 h-5 opacity-80"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            x="3"
+                            y="10"
+                            width="30"
+                            height="12"
+                            rx="2"
+                            fill="#64748B"
+                          />
+                          <line
+                            x1="3"
+                            y1="16"
+                            x2="33"
+                            y2="16"
+                            stroke="#CBD5E1"
+                            strokeWidth="1.5"
+                          />
+                          <circle cx="12" cy="8" r="5" fill="#15803D" />
+                          <circle cx="24" cy="9" r="4" fill="#166534" />
+                        </svg>
+                        <span className="text-[9px] font-semibold text-slate-700">
+                          {locale === 'id-ID' ? 'Pagar Taman' : 'Pagar Taman'}
+                        </span>
                       </div>
                     ) : landmark ? (
                       <div
-                        className={`w-full rounded-lg px-1.5 py-1 border text-center ${renderLandmarkBadge(
+                        className={`w-full rounded-lg px-1 py-1 border text-center ${renderLandmarkBadge(
                           landmark
                         )}`}
                       >
+                        {renderBuildingSvg(landmark.kind)}
                         <div
                           dir="rtl"
                           lang="ar"
-                          className="font-arabic text-sm sm:text-base font-bold leading-tight"
+                          className="font-arabic text-xs sm:text-sm font-bold leading-tight mt-0.5"
                         >
                           {landmark.arabicLabel}
                         </div>
-                        <div className="text-[10px] opacity-95 truncate">
+                        <div className="text-[9px] opacity-95 truncate">
                           {landmark.label[locale]}
                         </div>
                       </div>
                     ) : (
-                      <div className="my-auto text-[11px] text-[#1C2724]/40 font-medium">
-                        {isAdjacent ? (
-                          <span className="text-[#145A4A] font-semibold">
-                            {locale === 'id-ID' ? 'Klik Jalan' : 'Klik Jalan'}
+                      <div className="my-auto flex flex-col items-center justify-center">
+                        {isAdjacent && !isLevelComplete ? (
+                          <span className="px-2 py-0.5 rounded-md bg-[#DDEBE3] text-[#145A4A] text-[10px] font-bold">
+                            {locale === 'id-ID' ? 'Melangkah' : 'Melangkah'}
                           </span>
+                        ) : wasVisited && !isPlayerHere ? (
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#145A4A]/45" />
                         ) : (
-                          '•'
+                          <div className="w-6 h-1 rounded-full bg-[#1C2724]/15" />
                         )}
                       </div>
                     )}
 
                     {/* Traveler Avatar */}
-                    {isPlayerHere && (
-                      <div
-                        className={`mt-1 px-2 py-0.5 rounded-md bg-[#145A4A] text-white text-[10px] font-bold flex items-center gap-1 ${
-                          reducedMotion ? '' : 'transition-transform duration-150'
-                        }`}
-                      >
-                        <span>
-                          {locale === 'id-ID' ? 'Anda (المُسَافِر)' : 'Anda (المُسَافِر)'}
-                        </span>
-                      </div>
-                    )}
+                    {isPlayerHere && renderTravelerAvatar()}
                   </button>
                 );
               })
@@ -420,7 +636,9 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
               >
                 <Volume2 className="w-3.5 h-3.5" />
                 <span>
-                  {locale === 'id-ID' ? 'Dengarkan Instruksi' : 'Dengar Arahan'}
+                  {locale === 'id-ID'
+                    ? 'Bantuan Pelafalan Instruksi'
+                    : 'Bantuan Sebutan Arahan'}
                 </span>
               </button>
             </div>
@@ -429,8 +647,8 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
               <div className="p-5 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/12 text-center space-y-3">
                 <p className="text-xs sm:text-sm text-[#1C2724]/80 font-medium">
                   {locale === 'id-ID'
-                    ? 'Mode Dengar & Bertindak: Klik "Dengarkan Instruksi" di atas untuk mendengar perintah arah bahasa Arab.'
-                    : 'Mod Dengar & Bertindak: Klik "Dengar Arahan" di atas untuk mendengar arahan arah bahasa Arab.'}
+                    ? 'Mode Dengar & Bertindak: Klik "Bantuan Pelafalan Instruksi" di atas untuk mendengar perintah arah bahasa Arab.'
+                    : 'Mod Dengar & Bertindak: Klik "Bantuan Sebutan Arahan" di atas untuk mendengar arahan arah bahasa Arab.'}
                 </p>
                 <button
                   type="button"
@@ -473,8 +691,8 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
               <div className="text-[11px] text-[#1C2724]/65">
                 {audioMode === 'synthetic-tts-fallback'
                   ? locale === 'id-ID'
-                    ? 'Status Audio: Bantuan pelafalan sintetis perangkat (TTS Bahasa Arab).'
-                    : 'Status Audio: Bantuan sebutan sintetik peranti (TTS Bahasa Arab).'
+                    ? 'Status Audio: Bantuan pelafalan sintetis perangkat (TTS Bahasa Arab — bukan rekaman tilawah).'
+                    : 'Status Audio: Bantuan sebutan sintetik peranti (TTS Bahasa Arab — bukan rakaman tilawah).'
                   : audioMode === 'unavailable'
                   ? locale === 'id-ID'
                     ? 'Status Audio: Suara perangkat tidak tersedia; gunakan teks berharakat di atas.'
@@ -489,8 +707,8 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-[#1C2724]/75">
                 {locale === 'id-ID'
-                  ? 'Kendali Langkah (Tombol / Keyboard WASD / Klik Peta)'
-                  : 'Kawalan Langkah (Butang / Papan Kekunci WASD / Klik Peta)'}
+                  ? 'Kendali Langkah (Tombol / Keyboard WASD / Klik Jalan)'
+                  : 'Kawalan Langkah (Butang / Papan Kekunci WASD / Klik Jalan)'}
               </span>
               <button
                 type="button"
@@ -498,7 +716,9 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
                 className="inline-flex items-center gap-1 text-xs font-semibold text-[#145A4A] hover:underline"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>{locale === 'id-ID' ? 'Ulangi Posisi' : 'Ulang Posisi'}</span>
+                <span>
+                  {locale === 'id-ID' ? 'Ulangi dari Awal' : 'Ulang dari Mula'}
+                </span>
               </button>
             </div>
 
@@ -506,12 +726,17 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
               <div />
               <button
                 type="button"
+                disabled={isLevelComplete || isPaused}
                 onClick={() => handleMove('up')}
                 aria-label="Move Forward Amama"
-                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
+                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] disabled:opacity-45 border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
               >
                 <ArrowUp className="w-4 h-4 text-[#145A4A]" />
-                <span dir="rtl" lang="ar" className="font-arabic text-base font-bold text-[#145A4A]">
+                <span
+                  dir="rtl"
+                  lang="ar"
+                  className="font-arabic text-base font-bold text-[#145A4A]"
+                >
                   أَمَامَ
                 </span>
                 <span className="text-[10px] text-[#1C2724]/70">
@@ -522,12 +747,17 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
 
               <button
                 type="button"
+                disabled={isLevelComplete || isPaused}
                 onClick={() => handleMove('left')}
                 aria-label="Move Left Yasaran"
-                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
+                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] disabled:opacity-45 border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 text-[#145A4A]" />
-                <span dir="rtl" lang="ar" className="font-arabic text-base font-bold text-[#145A4A]">
+                <span
+                  dir="rtl"
+                  lang="ar"
+                  className="font-arabic text-base font-bold text-[#145A4A]"
+                >
                   يَسَارًا
                 </span>
                 <span className="text-[10px] text-[#1C2724]/70">
@@ -537,21 +767,29 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
 
               <div className="p-2 rounded-xl bg-[#145A4A]/8 border border-[#145A4A]/20 flex flex-col items-center justify-center text-center">
                 <span className="text-[10px] font-semibold text-[#145A4A]">
-                  {locale === 'id-ID' ? 'Posisi' : 'Posisi'}
+                  {locale === 'id-ID' ? 'Langkah' : 'Langkah'}
                 </span>
-                <span className="text-xs font-bold text-[#1C2724] tabular-nums">
-                  ({playerPos.x}, {playerPos.y})
+                <span
+                  data-testid="street-step-count"
+                  className="text-sm font-bold text-[#1C2724] tabular-nums"
+                >
+                  {stepHistory.length}
                 </span>
               </div>
 
               <button
                 type="button"
+                disabled={isLevelComplete || isPaused}
                 onClick={() => handleMove('right')}
                 aria-label="Move Right Yaminan"
-                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
+                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] disabled:opacity-45 border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
               >
                 <ArrowRight className="w-4 h-4 text-[#145A4A]" />
-                <span dir="rtl" lang="ar" className="font-arabic text-base font-bold text-[#145A4A]">
+                <span
+                  dir="rtl"
+                  lang="ar"
+                  className="font-arabic text-base font-bold text-[#145A4A]"
+                >
                   يَمِينًا
                 </span>
                 <span className="text-[10px] text-[#1C2724]/70">
@@ -562,12 +800,17 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
               <div />
               <button
                 type="button"
+                disabled={isLevelComplete || isPaused}
                 onClick={() => handleMove('down')}
                 aria-label="Move Backward Khalfa"
-                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
+                className="p-3 rounded-xl bg-[#F7F5EF] hover:bg-[#DDEBE3] disabled:opacity-45 border border-[#1C2724]/15 flex flex-col items-center justify-center gap-0.5 transition-colors"
               >
                 <ArrowDown className="w-4 h-4 text-[#145A4A]" />
-                <span dir="rtl" lang="ar" className="font-arabic text-base font-bold text-[#145A4A]">
+                <span
+                  dir="rtl"
+                  lang="ar"
+                  className="font-arabic text-base font-bold text-[#145A4A]"
+                >
                   خَلْفَ
                 </span>
                 <span className="text-[10px] text-[#1C2724]/70">
@@ -612,23 +855,27 @@ export const StreetExplorerGame: React.FC<StreetExplorerGameProps> = ({
 
               {isLevelComplete && (
                 <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-emerald-200">
-                  <span className="text-xs font-semibold text-[#145A4A] flex items-center gap-1">
-                    <Sparkles className="w-4 h-4" />
-                    <span>
-                      {locale === 'id-ID'
-                        ? 'Kosakata ruang ditambahkan ke Pustaka Kata & Jadwal Ulasan!'
-                        : 'Kosa kata ruang ditambahkan ke Pustaka Kosa Kata & Jadual Ulang Kaji!'}
-                    </span>
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => resetLevel(activeLevelIdx)}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-emerald-300 text-emerald-950 text-xs font-semibold hover:bg-emerald-100"
+                  >
+                    {locale === 'id-ID'
+                      ? 'Main Ulang Level Ini'
+                      : 'Main Semula Tahap Ini'}
+                  </button>
                   {activeLevelIdx < STREET_EXPLORER_LEVELS.length - 1 && (
                     <button
                       type="button"
                       onClick={() => setActiveLevelIdx((prev) => prev + 1)}
-                      className="px-4 py-2 rounded-xl bg-[#145A4A] text-white text-xs font-semibold hover:bg-[#10483B]"
+                      className="px-4 py-2 rounded-xl bg-[#145A4A] text-white text-xs font-semibold hover:bg-[#10483B] inline-flex items-center gap-1.5"
                     >
-                      {locale === 'id-ID'
-                        ? `Lanjut ke Level ${currentLevel.levelNumber + 1} →`
-                        : `Teruskan ke Tahap ${currentLevel.levelNumber + 1} →`}
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>
+                        {locale === 'id-ID'
+                          ? `Lanjut ke Level ${currentLevel.levelNumber + 1} →`
+                          : `Teruskan ke Tahap ${currentLevel.levelNumber + 1} →`}
+                      </span>
                     </button>
                   )}
                 </div>

@@ -53,7 +53,10 @@ export const MarketGame: React.FC<MarketGameProps> = ({
     setEvaluation(null);
   };
 
+  const isOrderCompleted = evaluation?.isCorrect === true;
+
   const handleAdjustQuantity = (itemId: string, delta: number) => {
+    if (isOrderCompleted) return;
     setEvaluation(null);
     setBasket((prev) => {
       const nextQty = Math.max(0, Math.min(5, (prev[itemId] || 0) + delta));
@@ -68,6 +71,7 @@ export const MarketGame: React.FC<MarketGameProps> = ({
   };
 
   const handleSubmitOrder = () => {
+    if (isOrderCompleted) return;
     const res = evaluateMarketOrder(currentStage, basket);
     setEvaluation({
       isCorrect: res.isCorrect,
@@ -153,13 +157,16 @@ export const MarketGame: React.FC<MarketGameProps> = ({
             onClick={() =>
               audioController.playVerifiedOrFallback({
                 arabicText: currentStage.arabicRequest,
+                allowSyntheticFallback: true,
               })
             }
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#DDEBE3] text-[#145A4A] text-xs font-semibold hover:bg-[#cde0d5]"
           >
             <Volume2 className="w-3.5 h-3.5" />
             <span>
-              {locale === 'id-ID' ? 'Dengarkan Pesanan' : 'Dengar Pesanan'}
+              {locale === 'id-ID'
+                ? 'Bantuan Pelafalan Pesanan'
+                : 'Bantuan Sebutan Pesanan'}
             </span>
           </button>
         </div>
@@ -362,10 +369,15 @@ export const MarketGame: React.FC<MarketGameProps> = ({
 
           <button
             type="button"
+            disabled={isOrderCompleted}
             onClick={handleSubmitOrder}
-            className="w-full py-3 px-4 rounded-xl bg-[#145A4A] text-white text-xs sm:text-sm font-semibold hover:bg-[#10483B] transition-colors"
+            className="w-full py-3 px-4 rounded-xl bg-[#145A4A] text-white text-xs sm:text-sm font-semibold hover:bg-[#10483B] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {locale === 'id-ID'
+            {isOrderCompleted
+              ? locale === 'id-ID'
+                ? 'Pesanan Selesai Terverifikasi ✓'
+                : 'Pesanan Selesai Disahkan ✓'
+              : locale === 'id-ID'
               ? 'Serahkan Pesanan ke Pelanggan'
               : 'Serahkan Pesanan kepada Pelanggan'}
           </button>
@@ -390,9 +402,16 @@ export const MarketGame: React.FC<MarketGameProps> = ({
                 </p>
               </div>
 
-              {evaluation.isCorrect &&
-                stageIdx < MARKET_MISSIONS.length - 1 && (
-                  <div className="pt-2 border-t border-emerald-200 flex justify-end">
+              <div className="pt-2 border-t border-black/10 flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSelectStage(stageIdx)}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-black/15 text-xs font-semibold text-[#1C2724] hover:bg-slate-50"
+                >
+                  {locale === 'id-ID' ? 'Ulangi Pesanan' : 'Ulang Pesanan'}
+                </button>
+                {evaluation.isCorrect &&
+                  stageIdx < MARKET_MISSIONS.length - 1 && (
                     <button
                       type="button"
                       onClick={() => handleSelectStage(stageIdx + 1)}
@@ -405,8 +424,8 @@ export const MarketGame: React.FC<MarketGameProps> = ({
                           : `Teruskan ke Misi ${currentStage.stageNumber + 1} →`}
                       </span>
                     </button>
-                  </div>
-                )}
+                  )}
+              </div>
             </div>
           )}
         </div>

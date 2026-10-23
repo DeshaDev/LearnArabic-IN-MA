@@ -50,7 +50,10 @@ export const SceneLabGame: React.FC<SceneLabGameProps> = ({
     setEvaluation(null);
   };
 
+  const isStageSolved = evaluation?.isCorrect === true;
+
   const handleSubmitSelection = (id: string) => {
+    if (isStageSolved) return;
     setSelectedId(id);
     const res = evaluateSceneLabAttempt(currentStage, id);
     setEvaluation({
@@ -227,54 +230,76 @@ export const SceneLabGame: React.FC<SceneLabGameProps> = ({
             <rect x="85" y="109" width="12" height="86" fill="#6E4720" />
             <rect x="225" y="109" width="12" height="86" fill="#6E4720" />
             {/* Zone 1: Above Table */}
-            <rect
-              x="115"
-              y="52"
-              width="90"
-              height="36"
-              rx="6"
-              fill={selectedId === 'fawqa-table' ? '#145A4A' : '#FFFFFF'}
-              stroke="#145A4A"
-              strokeDasharray="4 2"
-              strokeWidth="2"
-            />
-            <text
-              x="160"
-              y="74"
-              textAnchor="middle"
-              fill={selectedId === 'fawqa-table' ? '#FFFFFF' : '#145A4A'}
-              fontSize="12"
-              fontWeight="bold"
+            <g
+              onClick={() => handleSubmitSelection('fawqa-table')}
+              className="cursor-pointer"
             >
-              ١. فَوْقَ الطَّاوِلَةِ
-            </text>
+              <rect
+                x="115"
+                y="52"
+                width="90"
+                height="36"
+                rx="6"
+                fill={selectedId === 'fawqa-table' ? '#145A4A' : '#FFFFFF'}
+                stroke="#145A4A"
+                strokeDasharray="4 2"
+                strokeWidth="2"
+              />
+              <text
+                x="160"
+                y="74"
+                textAnchor="middle"
+                fill={selectedId === 'fawqa-table' ? '#FFFFFF' : '#145A4A'}
+                fontSize="12"
+                fontWeight="bold"
+              >
+                ١. فَوْقَ الطَّاوِلَةِ
+              </text>
+            </g>
             {/* Zone 2: Under Table beside Box (TARGET) */}
-            <rect
-              x="105"
-              y="145"
-              width="110"
-              height="40"
-              rx="6"
-              fill={selectedId === 'tahta-table' ? '#15803D' : '#FFFFFF'}
-              stroke="#15803D"
-              strokeDasharray="4 2"
-              strokeWidth="2"
-            />
-            <text
-              x="160"
-              y="169"
-              textAnchor="middle"
-              fill={selectedId === 'tahta-table' ? '#FFFFFF' : '#15803D'}
-              fontSize="12"
-              fontWeight="bold"
+            <g
+              onClick={() => handleSubmitSelection('tahta-table')}
+              className="cursor-pointer"
             >
-              ٢. تَحْتَ الطَّاوِلَةِ
-            </text>
-            {/* Box beside under-table zone */}
-            <rect x="275" y="135" width="95" height="60" rx="6" fill="#B45309" />
-            <text x="322" y="168" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="bold">
-              الصُّنْدُوقُ ( دَاخِلَ )
-            </text>
+              <rect
+                x="105"
+                y="145"
+                width="110"
+                height="40"
+                rx="6"
+                fill={selectedId === 'tahta-table' ? '#15803D' : '#FFFFFF'}
+                stroke="#15803D"
+                strokeDasharray="4 2"
+                strokeWidth="2"
+              />
+              <text
+                x="160"
+                y="169"
+                textAnchor="middle"
+                fill={selectedId === 'tahta-table' ? '#FFFFFF' : '#15803D'}
+                fontSize="12"
+                fontWeight="bold"
+              >
+                ٢. تَحْتَ الطَّاوِلَةِ
+              </text>
+            </g>
+            {/* Box beside under-table zone (Zone 3: Inside Box) */}
+            <g
+              onClick={() => handleSubmitSelection('dakhila-box')}
+              className="cursor-pointer"
+            >
+              <rect
+                x="275"
+                y="135"
+                width="95"
+                height="60"
+                rx="6"
+                fill={selectedId === 'dakhila-box' ? '#78350F' : '#B45309'}
+              />
+              <text x="322" y="168" textAnchor="middle" fill="#FFFFFF" fontSize="12" fontWeight="bold">
+                ٣. دَاخِلَ الصُّنْدُوقِ
+              </text>
+            </g>
           </svg>
         );
     }
@@ -327,12 +352,17 @@ export const SceneLabGame: React.FC<SceneLabGameProps> = ({
               onClick={() =>
                 audioController.playVerifiedOrFallback({
                   arabicText: currentStage.targetArabicSentence,
+                  allowSyntheticFallback: true,
                 })
               }
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#DDEBE3] text-[#145A4A] text-xs font-semibold hover:bg-[#cde0d5]"
             >
               <Volume2 className="w-3.5 h-3.5" />
-              <span>{locale === 'id-ID' ? 'Dengar Kalimat' : 'Dengar Ayat'}</span>
+              <span>
+                {locale === 'id-ID'
+                  ? 'Bantuan Pelafalan Kalimat'
+                  : 'Bantuan Sebutan Ayat'}
+              </span>
             </button>
           </div>
 
@@ -368,13 +398,14 @@ export const SceneLabGame: React.FC<SceneLabGameProps> = ({
                   <button
                     key={zone.zoneId}
                     type="button"
+                    disabled={isStageSolved}
                     onClick={() => handleSubmitSelection(zone.zoneId)}
                     className={`p-4 rounded-xl border text-left transition-all ${
                       selectedId === zone.zoneId
                         ? zone.isCorrectZone
                           ? 'bg-emerald-50 border-emerald-500 text-emerald-950'
                           : 'bg-amber-50 border-amber-500 text-amber-950'
-                        : 'bg-[#F7F5EF] hover:bg-[#DDEBE3]/60 border-[#1C2724]/15'
+                        : 'bg-[#F7F5EF] hover:bg-[#DDEBE3]/60 border-[#1C2724]/15 disabled:opacity-60'
                     }`}
                   >
                     <div
@@ -397,13 +428,14 @@ export const SceneLabGame: React.FC<SceneLabGameProps> = ({
                 <button
                   key={opt.id}
                   type="button"
+                  disabled={isStageSolved}
                   onClick={() => handleSubmitSelection(opt.id)}
                   className={`w-full p-4 rounded-xl border text-left transition-all space-y-1.5 ${
                     selectedId === opt.id
                       ? opt.isCorrect
                         ? 'bg-emerald-50 border-emerald-500'
                         : 'bg-amber-50 border-amber-500'
-                      : 'bg-[#F7F5EF] hover:bg-[#DDEBE3]/50 border-[#1C2724]/12'
+                      : 'bg-[#F7F5EF] hover:bg-[#DDEBE3]/50 border-[#1C2724]/12 disabled:opacity-60'
                   }`}
                 >
                   <div

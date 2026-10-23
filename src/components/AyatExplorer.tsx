@@ -529,7 +529,7 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
               {audioMode !== 'idle' && (
                 <div
                   role="status"
-                  className={`p-3 rounded-xl border text-xs flex items-start gap-2 ${
+                  className={`p-3 rounded-xl border text-xs flex flex-wrap items-center justify-between gap-3 ${
                     audioMode === 'verified-recording'
                       ? 'bg-[#DDEBE3]/60 border-[#145A4A]/30 text-[#145A4A]'
                       : audioMode === 'loading'
@@ -537,25 +537,41 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
                       : 'bg-amber-50 border-amber-300 text-amber-950'
                   }`}
                 >
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div>
-                    {audioMode === 'verified-recording' &&
-                      (locale === 'id-ID'
-                        ? 'Memutar rekaman tilawah terverifikasi (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).'
-                        : 'Memainkan rakaman tilawah yang disahkan (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).')}
-                    {audioMode === 'loading' &&
-                      (locale === 'id-ID'
-                        ? 'Memuat berkas rekaman audio tilawah...'
-                        : 'Memuatkan fail rakaman audio tilawah...')}
-                    {audioMode === 'synthetic-tts-fallback' &&
-                      (locale === 'id-ID'
-                        ? 'Bantuan Sebutan Sintetis Peramban (TTS Bahasa Arab): Rekaman tilawah qari tidak dapat dimuat di jaringan ini. Suara sintetis peramban hanya untuk bantuan bunyi dasar dan BUKAN tilawah Al-Qur’an.'
-                        : 'Bantuan Sebutan Sintetik Pelayar (TTS Bahasa Arab): Rakaman tilawah qari tidak dapat dimuatkan pada rangkaian ini. Suara sintetik pelayar hanyalah bantuan bunyi asas dan BUKAN tilawah al-Quran.')}
-                    {audioMode === 'unavailable' &&
-                      (locale === 'id-ID'
-                        ? 'Audio Tilawah Tidak Tersedia: Berkas rekaman qari tidak dapat dijangkau dari jaringan ini dan peramban tidak memiliki suara Bahasa Arab. Kami tidak memutar nada musik sintetis sebagai pengganti ayat.'
-                        : 'Audio Tilawah Tidak Tersedia: Fail rakaman qari tidak dapat dicapai daripada rangkaian ini dan pelayar tidak mempunyai suara Bahasa Arab. Kami tidak memainkan nada muzik sintetik sebagai pengganti ayat.')}
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <div>
+                      {audioMode === 'verified-recording' &&
+                        (locale === 'id-ID'
+                          ? 'Memutar rekaman tilawah terverifikasi (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).'
+                          : 'Memainkan rakaman tilawah yang disahkan (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).')}
+                      {audioMode === 'loading' &&
+                        (locale === 'id-ID'
+                          ? 'Memuat berkas rekaman audio tilawah...'
+                          : 'Memuatkan fail rakaman audio tilawah...')}
+                      {audioMode === 'synthetic-tts-fallback' &&
+                        (locale === 'id-ID'
+                          ? 'Bantuan Sebutan Sintetis Peramban (TTS Bahasa Arab): Digunakan khusus untuk frasa doa/kosakata umum dan BUKAN tilawah Al-Qur’an.'
+                          : 'Bantuan Sebutan Sintetik Pelayar (TTS Bahasa Arab): Digunakan khusus untuk frasa doa/kosa kata umum dan BUKAN tilawah al-Quran.')}
+                      {audioMode === 'unavailable' &&
+                        (locale === 'id-ID'
+                          ? 'Tilawah sementara tidak tersedia: Berkas rekaman qari tidak dapat dijangkau dari jaringan ini. Demi menjaga kehormatan bacaan Al-Qur’an, aplikasi tidak mengganti tilawah dengan suara sintetis otomatis.'
+                          : 'Tilawah buat masa ini tidak tersedia: Fail rakaman qari tidak dapat dicapai daripada rangkaian ini. Demi menjaga kehormatan bacaan al-Quran, aplikasi tidak menggantikan tilawah dengan suara sintetik automatik.')}
+                    </div>
                   </div>
+                  {audioMode === 'unavailable' && (
+                    <button
+                      type="button"
+                      onClick={handlePlayPhrase}
+                      className="px-3 py-1.5 rounded-lg bg-[#145A4A] text-white text-xs font-semibold hover:bg-[#10483B] inline-flex items-center gap-1.5 shrink-0"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>
+                        {locale === 'id-ID'
+                          ? 'Coba Muat Ulang Tilawah'
+                          : 'Cuba Muat Semula Tilawah'}
+                      </span>
+                    </button>
+                  )}
                 </div>
               )}
 

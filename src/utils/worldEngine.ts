@@ -26,9 +26,6 @@ export function createInitialWorldProgress(): WorldProgressState {
       'street-explorer',
       'scene-lab',
       'market',
-      'sentence-bridge',
-      'lost-message',
-      'word-detective',
       'quranic-discovery',
     ],
     completedLevels: {},
@@ -45,6 +42,44 @@ export function createInitialWorldProgress(): WorldProgressState {
     },
     mistakeHistory: [],
   };
+}
+
+export function isWorldLocationUnlocked(
+  locationId: WorldLocationId,
+  worldProgress: WorldProgressState,
+  freeExploreMode = false
+): boolean {
+  if (freeExploreMode) return true;
+  if (worldProgress.unlockedLocations.includes(locationId)) return true;
+
+  const locMeta = WORLD_LOCATIONS.find((l) => l.id === locationId);
+  if (!locMeta) return false;
+  if (locMeta.unlockMinCompletedStages <= 0) return true;
+
+  const totalCompletedCount = Object.keys(worldProgress.completedLevels).length;
+  return totalCompletedCount >= locMeta.unlockMinCompletedStages;
+}
+
+export function computeUnlockedLocationsList(
+  completedLevels: Record<string, unknown>,
+  existingUnlocked: WorldLocationId[]
+): WorldLocationId[] {
+  const totalCompleted = Object.keys(completedLevels).length;
+  const nextSet = new Set<WorldLocationId>([
+    ...existingUnlocked,
+    'street-explorer',
+    'scene-lab',
+    'market',
+    'quranic-discovery',
+  ]);
+
+  WORLD_LOCATIONS.forEach((loc) => {
+    if (totalCompleted >= loc.unlockMinCompletedStages) {
+      nextSet.add(loc.id);
+    }
+  });
+
+  return Array.from(nextSet);
 }
 
 export function createDemoWorldProgress(nowTimestamp: number): WorldProgressState {
@@ -464,27 +499,45 @@ export function recordGameAttemptInProgress(
   const updatedQueue = { ...progress.reviewQueue };
 
   if (didPassLevel) {
-    // Mark focus words as learned and schedule spaced review
-    payload.wordIds.forEach((wId) => {
-      updatedQueue[wId] = calculateNextReview(
-        updatedQueue[wId],
-        wId,
-        payload.mistakesCount === 0,
-        nowTimestamp
-      );
-    });
-
     const earnedStars =
       payload.mistakesCount === 0 ? 3 : payload.mistakesCount === 1 ? 2 : 1;
     const prevResult = existingWorld.completedLevels[levelKey];
+    const candidateScore = Math.max(60, 100 - payload.mistakesCount * 15);
     const bestStars = prevResult
       ? Math.max(prevResult.stars, earnedStars)
       : earnedStars;
-    const starDelta = prevResult ? Math.max(0, bestStars - prevResult.stars) : earnedStars;
-    const xpGain = prevResult ? 15 : 40 + earnedStars * 10;
+    const starDelta = prevResult
+      ? Math.max(0, bestStars - prevResult.stars)
+      : earnedStars;
+    const scoreImproved = prevResult
+      ? candidateScore > prevResult.bestScore
+      : true;
+
+    // Idempotent reward rule:
+    // - First completion awards full XP (40 + earnedStars * 10) and +1 skill evidence.
+    // - Replay only awards bounded XP if star rating or bestScore genuinely improved.
+    // - Unchanged repeat submissions award 0 XP, 0 stars, and 0 new skill evidence.
+    const xpGain = !prevResult
+      ? 40 + earnedStars * 10
+      : starDelta > 0
+      ? starDelta * 10
+      : scoreImproved
+      ? 5
+      : 0;
+
+    if (!prevResult || starDelta > 0 || scoreImproved) {
+      payload.wordIds.forEach((wId) => {
+        updatedQueue[wId] = calculateNextReview(
+          updatedQueue[wId],
+          wId,
+          payload.mistakesCount === 0,
+          nowTimestamp
+        );
+      });
+    }
 
     const updatedSkills = { ...existingWorld.skillDemonstrations };
-    if (locationMeta) {
+    if (!prevResult && locationMeta) {
       locationMeta.skillsTrained.forEach((skillId) => {
         updatedSkills[skillId] = (updatedSkills[skillId] || 0) + 1;
       });
@@ -492,6 +545,29 @@ export function recordGameAttemptInProgress(
 
     const learnedWordIds = Array.from(
       new Set([...progress.learnedWordIds, ...payload.wordIds])
+    );
+
+    const nextCompletedLevels = {
+      ...existingWorld.completedLevels,
+      [levelKey]: {
+        locationId: payload.locationId,
+        levelNumber: payload.levelNumber,
+        stars: bestStars,
+        bestScore: Math.max(prevResult?.bestScore || 0, candidateScore),
+        attempts:
+          !prevResult || starDelta > 0 || scoreImproved
+            ? (prevResult?.attempts || 0) + 1
+            : prevResult.attempts,
+        mistakesCount: prevResult
+          ? Math.min(prevResult.mistakesCount, payload.mistakesCount)
+          : payload.mistakesCount,
+        completedAt: prevResult?.completedAt || nowTimestamp,
+      },
+    };
+
+    const nextUnlockedLocations = computeUnlockedLocationsList(
+      nextCompletedLevels,
+      existingWorld.unlockedLocations
     );
 
     return {
@@ -502,32 +578,22 @@ export function recordGameAttemptInProgress(
         ...existingWorld,
         xp: existingWorld.xp + xpGain,
         totalStars: existingWorld.totalStars + starDelta,
-        completedLevels: {
-          ...existingWorld.completedLevels,
-          [levelKey]: {
-            locationId: payload.locationId,
-            levelNumber: payload.levelNumber,
-            stars: bestStars,
-            bestScore: Math.max(
-              prevResult?.bestScore || 0,
-              Math.max(60, 100 - payload.mistakesCount * 15)
-            ),
-            attempts: (prevResult?.attempts || 0) + 1,
-            mistakesCount: payload.mistakesCount,
-            completedAt: nowTimestamp,
-          },
-        },
+        unlockedLocations: nextUnlockedLocations,
+        completedLevels: nextCompletedLevels,
         skillDemonstrations: updatedSkills,
         lastPlayedLocation: payload.locationId,
       },
-      analyticsEvents: [
-        ...(progress.analyticsEvents || []).slice(-49),
-        {
-          eventName: 'world_level_completed',
-          timestamp: nowTimestamp,
-          metadata: `${levelKey}:stars=${earnedStars}`,
-        },
-      ],
+      analyticsEvents:
+        !prevResult || starDelta > 0 || scoreImproved
+          ? [
+              ...(progress.analyticsEvents || []).slice(-49),
+              {
+                eventName: 'world_level_completed',
+                timestamp: nowTimestamp,
+                metadata: `${levelKey}:stars=${bestStars}:xpGain=${xpGain}`,
+              },
+            ]
+          : progress.analyticsEvents || [],
     };
   }
 
