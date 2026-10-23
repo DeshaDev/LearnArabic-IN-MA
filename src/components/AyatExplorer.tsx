@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
+  AudioPlaybackMode,
   LearnerProgress,
   Lesson,
   LocaleCode,
+  TeacherReviewRequest,
   WordToken,
 } from '../types/learning';
 import { LOCALES } from '../data/locales';
@@ -20,6 +22,7 @@ import {
   ArrowLeft,
   BookOpen,
   UserCheck,
+  ExternalLink,
 } from 'lucide-react';
 
 interface AyatExplorerProps {
@@ -29,7 +32,12 @@ interface AyatExplorerProps {
   onSelectLesson: (lessonId: string) => void;
   onToggleBookmark: (wordId: string) => void;
   onSaveReflection: (lessonId: string, text: string) => void;
-  onRequestTeacherReview?: (lessonId: string, focusNote: string) => void;
+  onRequestTeacherReview?: (
+    lessonId: string,
+    focusNote: string,
+    focusArea?: TeacherReviewRequest['focusArea'],
+    serverTicketId?: string
+  ) => void;
   onCompleteLesson: (
     lessonId: string,
     wordIds: string[],
@@ -60,6 +68,7 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
   const [recallChoice, setRecallChoice] = useState<number | null>(null);
   const [audioRate, setAudioRate] = useState<0.75 | 1.0>(1.0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [audioMode, setAudioMode] = useState<AudioPlaybackMode>('idle');
   const [playbackSeconds, setPlaybackSeconds] = useState<number>(0);
   const [showAdvancedGrammar, setShowAdvancedGrammar] = useState<boolean>(false);
   const [reflectionText, setReflectionText] = useState<string>(
@@ -67,7 +76,13 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
   );
   const [reflectionSavedToast, setReflectionSavedToast] = useState<boolean>(false);
   const [teacherNote, setTeacherNote] = useState<string>('');
-  const [teacherSubmitted, setTeacherSubmitted] = useState<boolean>(false);
+  const [teacherFocusArea, setTeacherFocusArea] =
+    useState<NonNullable<TeacherReviewRequest['focusArea']>>('makhraj');
+  const [teacherLoading, setTeacherLoading] = useState<boolean>(false);
+  const [teacherError, setTeacherError] = useState<string | null>(null);
+  const [teacherSubmittedTicket, setTeacherSubmittedTicket] = useState<string | null>(
+    null
+  );
 
   // Practice Step State (3 exercise formats)
   const [mcSelection, setMcSelection] = useState<number | null>(null);
@@ -89,8 +104,10 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
     setRoleSelection(null);
     setLessonCompletedBanner(false);
     setPlaybackSeconds(0);
+    setAudioMode('idle');
     setTeacherNote('');
-    setTeacherSubmitted(false);
+    setTeacherError(null);
+    setTeacherSubmittedTicket(null);
     setReflectionText(progress.reflections[lesson.id] || '');
   }, [lesson.id]);
 
@@ -137,24 +154,76 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
     setPlaybackSeconds(0);
     audioController.speakArabic(
       lesson.arabicPhrase,
-      audioRate * 0.85,
-      [293.66, 349.23, 392.0, 440.0, 349.23],
+      audioRate,
+      undefined,
       () => setIsPlaying(true),
       () => {
         setIsPlaying(false);
         setPlaybackSeconds(lesson.audioDurationSeconds || 5);
-      }
+      },
+      lesson.id,
+      lesson.audioUrl,
+      (mode) => setAudioMode(mode)
     );
   };
 
   const handlePlayWord = (word: WordToken) => {
-    audioController.speakArabic(
+    audioController.playWordAudio(
+      word.id,
       word.arabic,
-      audioRate * 0.8,
-      word.audioFreqHz || [349.23, 392.0],
+      audioRate,
       () => setIsPlaying(true),
-      () => setIsPlaying(false)
+      () => setIsPlaying(false),
+      word.audioUrl,
+      (mode) => setAudioMode(mode)
     );
+  };
+
+  const handleSubmitTeacherReview = async () => {
+    if (!teacherNote.trim() || teacherLoading) return;
+    setTeacherLoading(true);
+    setTeacherError(null);
+    try {
+      const response = await fetch('/api/teacher-reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lessonId: lesson.id,
+          verseRef: lesson.verseRef,
+          focusArea: teacherFocusArea,
+          focusNote: teacherNote.trim(),
+          learnerName: progress.user?.name || 'Pembelajar Tamu',
+          learnerEmail: progress.user?.email || '',
+          locale,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+            (locale === 'id-ID'
+              ? 'Gagal mengirim permohonan ke server.'
+              : 'Gagal menghantar permohonan ke pelayan.')
+        );
+      }
+      onRequestTeacherReview?.(
+        lesson.id,
+        teacherNote.trim(),
+        teacherFocusArea,
+        data.request?.id
+      );
+      setTeacherSubmittedTicket(data.request?.id || 'TR-RECORDED');
+      setTeacherNote('');
+    } catch (err: any) {
+      setTeacherError(
+        err?.message ||
+          (locale === 'id-ID'
+            ? 'Gagal terhubung ke server antrean pengajar. Silakan coba lagi.'
+            : 'Gagal menghubungi pelayan giliran guru. Sila cuba lagi.')
+      );
+    } finally {
+      setTeacherLoading(false);
+    }
   };
 
   const handleMatchMeaningClick = (pairId: string) => {
@@ -200,15 +269,29 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
                 {lesson.durationMinutes} {locale === 'id-ID' ? 'menit' : 'minit'}
               </span>
               <span aria-hidden="true">·</span>
-              <span>
+              <span className="px-2 py-0.5 rounded-md bg-[#F7F5EF] border border-[#1C2724]/10 font-medium text-[#1C2724]/80">
                 {lesson.editorialStatus === 'verified-source'
                   ? locale === 'id-ID'
-                    ? 'Sumber Terverifikasi'
-                    : 'Sumber Disahkan'
+                    ? 'Teks & Terjemahan Rujukan Resmi (Kemenag/JAKIM)'
+                    : 'Teks & Terjemahan Rujukan Rasmi (JAKIM/Kemenag)'
                   : locale === 'id-ID'
-                  ? 'Ditinjau Pengajar'
-                  : 'Disemak Pendidik'}
+                  ? 'Draf Kurikulum Internal — Menunggu Tinjauan Ahli'
+                  : 'Draf Kurikulum Dalaman — Menunggu Semakan Pakar'}
               </span>
+              {lesson.sourceUrl && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <a
+                    href={lesson.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[#145A4A] font-semibold hover:underline"
+                  >
+                    <span>{locale === 'id-ID' ? 'Cek Sumber Ayat' : 'Semak Sumber Ayat'}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </>
+              )}
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#1C2724] mt-1">
               {lesson.title[locale]}
@@ -442,6 +525,40 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
                 </div>
               </div>
 
+              {/* Honest Live Audio Mode Indicator */}
+              {audioMode !== 'idle' && (
+                <div
+                  role="status"
+                  className={`p-3 rounded-xl border text-xs flex items-start gap-2 ${
+                    audioMode === 'verified-recording'
+                      ? 'bg-[#DDEBE3]/60 border-[#145A4A]/30 text-[#145A4A]'
+                      : audioMode === 'loading'
+                      ? 'bg-[#F7F5EF] border-[#1C2724]/15 text-[#1C2724]/75'
+                      : 'bg-amber-50 border-amber-300 text-amber-950'
+                  }`}
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    {audioMode === 'verified-recording' &&
+                      (locale === 'id-ID'
+                        ? 'Memutar rekaman tilawah terverifikasi (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).'
+                        : 'Memainkan rakaman tilawah yang disahkan (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).')}
+                    {audioMode === 'loading' &&
+                      (locale === 'id-ID'
+                        ? 'Memuat berkas rekaman audio tilawah...'
+                        : 'Memuatkan fail rakaman audio tilawah...')}
+                    {audioMode === 'synthetic-tts-fallback' &&
+                      (locale === 'id-ID'
+                        ? 'Bantuan Sebutan Sintetis Peramban (TTS Bahasa Arab): Rekaman tilawah qari tidak dapat dimuat di jaringan ini. Suara sintetis peramban hanya untuk bantuan bunyi dasar dan BUKAN tilawah Al-Qur’an.'
+                        : 'Bantuan Sebutan Sintetik Pelayar (TTS Bahasa Arab): Rakaman tilawah qari tidak dapat dimuatkan pada rangkaian ini. Suara sintetik pelayar hanyalah bantuan bunyi asas dan BUKAN tilawah al-Quran.')}
+                    {audioMode === 'unavailable' &&
+                      (locale === 'id-ID'
+                        ? 'Audio Tilawah Tidak Tersedia: Berkas rekaman qari tidak dapat dijangkau dari jaringan ini dan peramban tidak memiliki suara Bahasa Arab. Kami tidak memutar nada musik sintetis sebagai pengganti ayat.'
+                        : 'Audio Tilawah Tidak Tersedia: Fail rakaman qari tidak dapat dicapai daripada rangkaian ini dan pelayar tidak mempunyai suara Bahasa Arab. Kami tidak memainkan nada muzik sintetik sebagai pengganti ayat.')}
+                  </div>
+                </div>
+              )}
+
               {/* Playback Position Scrub Bar */}
               <div className="flex items-center gap-3 pt-2 border-t border-[#1C2724]/8">
                 <label htmlFor="audio-playback-position" className="sr-only">
@@ -466,60 +583,124 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
               </div>
             </div>
 
-            <div className="text-xs text-[#1C2724]/60 flex flex-wrap items-center justify-between gap-2">
-              <span>{lesson.audioReciter}</span>
-              <span>{lesson.audioLicense}</span>
+            <div className="text-xs text-[#1C2724]/65 flex flex-wrap items-center justify-between gap-2 bg-[#F7F5EF] px-3.5 py-2.5 rounded-xl border border-[#1C2724]/10">
+              <span>
+                <strong>{locale === 'id-ID' ? 'Sumber Audio:' : 'Sumber Audio:'}</strong>{' '}
+                {lesson.audioReciter}
+              </span>
+              <span>
+                <strong>{locale === 'id-ID' ? 'Lisensi:' : 'Lesen:'}</strong>{' '}
+                {lesson.audioLicense}
+              </span>
             </div>
 
-            {/* Path B Human Teacher (Ustaz/Talaqqi) Review Workflow */}
+            {/* Path B Human Teacher (Ustaz/Talaqqi) Review Request Queue Workflow */}
             {lesson.pathwayId === 'quran-reading' && (
               <div className="p-5 rounded-2xl bg-[#F7F5EF] border border-[#D8A75B]/50 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#145A4A]">
-                  <UserCheck className="w-4 h-4 text-[#D8A75B]" />
-                  <span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#145A4A]">
+                    <UserCheck className="w-4 h-4 text-[#D8A75B]" />
+                    <span>
+                      {locale === 'id-ID'
+                        ? 'Antrean Permohonan Semakan Bacaan bersama Pengajar (Talaqqi)'
+                        : 'Giliran Permohonan Semakan Bacaan bersama Guru (Talaqqi)'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-white border border-[#1C2724]/10 text-[#1C2724]/70">
                     {locale === 'id-ID'
-                      ? 'Pendampingan Talaqqi & Koreksi Makhraj bersama Pengajar Manusia'
-                      : 'Bimbingan Talaqqi & Semakan Makhraj bersama Guru Manusia'}
+                      ? 'Sistem Antrean Permohonan (Belum Dijadwalkan)'
+                      : 'Sistem Giliran Permohonan (Belum Dijadualkan)'}
                   </span>
                 </div>
                 <p className="text-xs text-[#1C2724]/80 leading-relaxed">
                   {locale === 'id-ID'
-                    ? 'Ketepatan makhraj dan sifat huruf tidak diklaim otomatis oleh algoritma. Catat bagian bacaan yang ingin Anda konsultasikan pada sesi talaqqi bersama Ustaz/Ustazah pembimbing:'
-                    : 'Ketepatan makhraj dan sifat huruf tidak didakwa secara automatik oleh algoritma. Catatkan bahagian bacaan yang ingin anda semak dalam sesi talaqqi bersama Ustaz/Ustazah pembimbing:'}
+                    ? 'Aplikasi ini tidak menilai tajwid atau makhraj secara otomatis. Kirim catatan bagian bacaan yang ingin Anda tanyakan ke antrean tinjauan pengajar di server:'
+                    : 'Aplikasi ini tidak menilai tajwid atau makhraj secara automatik. Hantar nota bahagian bacaan yang ingin anda tanyakan ke dalam giliran semakan guru di pelayan:'}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2">
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <select
+                    aria-label={locale === 'id-ID' ? 'Area Fokus Tajwid' : 'Fokus Tajwid'}
+                    value={teacherFocusArea}
+                    onChange={(e) =>
+                      setTeacherFocusArea(
+                        e.target.value as NonNullable<TeacherReviewRequest['focusArea']>
+                      )
+                    }
+                    className="px-3 py-2 text-xs rounded-xl bg-white border border-[#1C2724]/15 font-medium text-[#1C2724]"
+                  >
+                    <option value="makhraj">
+                      {locale === 'id-ID' ? 'Fokus: Makharijul Huruf' : 'Fokus: Makhraj Huruf'}
+                    </option>
+                    <option value="mad-waqaf">
+                      {locale === 'id-ID' ? 'Fokus: Panjang Mad & Waqaf' : 'Fokus: Kadar Mad & Waqaf'}
+                    </option>
+                    <option value="ghunnah">
+                      {locale === 'id-ID' ? 'Fokus: Tasydid & Dengung' : 'Fokus: Sabdu & Dengung'}
+                    </option>
+                    <option value="fluency">
+                      {locale === 'id-ID' ? 'Fokus: Kelancaran Washal' : 'Fokus: Kelancaran Wasal'}
+                    </option>
+                  </select>
                   <input
                     type="text"
                     value={teacherNote}
                     onChange={(e) => setTeacherNote(e.target.value)}
                     placeholder={
                       locale === 'id-ID'
-                        ? 'Misal: Mohon cek makhraj huruf ح dan panjang mad saya...'
-                        : 'Cth: Mohon semak makhraj huruf ح dan kadar panjang mad saya...'
+                        ? 'Misal: Mohon koreksi bunyi huruf ح dan ع saya...'
+                        : 'Cth: Mohon semak sebutan huruf ح dan ع saya...'
                     }
-                    className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-white border border-[#1C2724]/15 focus:outline-2 focus:outline-[#145A4A]"
+                    className="sm:col-span-2 px-3.5 py-2 text-xs rounded-xl bg-white border border-[#1C2724]/15 focus:outline-2 focus:outline-[#145A4A]"
                   />
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (!teacherNote.trim()) return;
-                      onRequestTeacherReview?.(lesson.id, teacherNote.trim());
-                      setTeacherSubmitted(true);
-                      setTeacherNote('');
-                    }}
-                    className="px-4 py-2 text-xs font-semibold bg-[#145A4A] text-white rounded-xl hover:bg-[#10483B] whitespace-nowrap shrink-0"
+                    disabled={teacherLoading || !teacherNote.trim()}
+                    onClick={handleSubmitTeacherReview}
+                    className="px-4 py-2 text-xs font-semibold bg-[#145A4A] text-white rounded-xl hover:bg-[#10483B] disabled:opacity-50 whitespace-nowrap shrink-0"
                   >
-                    {locale === 'id-ID'
-                      ? 'Jadwalkan Semakan Guru'
-                      : 'Jadualkan Semakan Guru'}
+                    {teacherLoading
+                      ? locale === 'id-ID'
+                        ? 'Mengirim ke Antrean Server...'
+                        : 'Menghantar ke Giliran Pelayan...'
+                      : locale === 'id-ID'
+                      ? 'Kirim Permohonan ke Antrean'
+                      : 'Hantar Permohonan ke Giliran'}
                   </button>
+
+                  {teacherError && (
+                    <div className="flex items-center gap-2 text-xs text-red-700">
+                      <span>{teacherError}</span>
+                      <button
+                        type="button"
+                        onClick={handleSubmitTeacherReview}
+                        className="underline font-semibold"
+                      >
+                        {locale === 'id-ID' ? 'Coba Lagi' : 'Cuba Lagi'}
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {teacherSubmitted && (
-                  <p className="text-xs font-semibold text-[#145A4A]">
-                    {locale === 'id-ID'
-                      ? '✓ Permintaan tinjauan bacaan Anda telah dicatat untuk sesi talaqqi pengajar.'
-                      : '✓ Permintaan semakan bacaan anda telah direkodkan untuk sesi talaqqi guru.'}
-                  </p>
+
+                {teacherSubmittedTicket && (
+                  <div
+                    role="status"
+                    className="p-3 rounded-xl bg-white border border-[#145A4A]/25 text-xs text-[#1C2724] space-y-1"
+                  >
+                    <div className="font-bold text-[#145A4A]">
+                      {locale === 'id-ID'
+                        ? `✓ Permohonan Tercatat dalam Antrean Server (ID: #${teacherSubmittedTicket})`
+                        : `✓ Permohonan Direkodkan dalam Giliran Pelayan (ID: #${teacherSubmittedTicket})`}
+                    </div>
+                    <p className="text-[#1C2724]/75">
+                      {locale === 'id-ID'
+                        ? 'Status: Diterima dalam antrean permohonan (belum berupa jadwal sesi langsung). Permohonan disimpan di basis data server lokal aplikasi ini.'
+                        : 'Status: Diterima dalam giliran permohonan (belum merupakan jadual sesi langsung). Permohonan disimpan dalam pangkalan data pelayan aplikasi ini.'}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
@@ -632,11 +813,24 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
                     {activeWord.lexicalNote[locale]}
                   </p>
 
-                  <div className="mt-4 pt-3 border-t border-[#1C2724]/10 text-xs text-[#1C2724]/65">
-                    <span className="font-semibold text-[#145A4A]">
-                      {dict.common.verifiedSource}:
-                    </span>{' '}
-                    {activeWord.sourceAttribution[locale]}
+                  <div className="mt-4 pt-3 border-t border-[#1C2724]/10 text-xs text-[#1C2724]/65 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="font-semibold text-[#145A4A]">
+                        {dict.common.verifiedSource}:
+                      </span>{' '}
+                      {activeWord.sourceAttribution[locale]}
+                    </div>
+                    {activeWord.sourceUrl && (
+                      <a
+                        href={activeWord.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[#145A4A] font-semibold hover:underline"
+                      >
+                        <span>{locale === 'id-ID' ? 'Buka Sumber' : 'Buka Sumber'}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
                 </div>
 

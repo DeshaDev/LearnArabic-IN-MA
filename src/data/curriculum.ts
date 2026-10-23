@@ -10,7 +10,17 @@ import {
   EXTRA_CURRICULUM_LEVELS,
 } from './curriculumExpanded';
 
-export const WORDS: WordToken[] = [
+import { resolveWordAudioUrl } from '../utils/audioPlayer';
+
+function deriveSourceUrlFromVerseRef(verseRef: string): string {
+  const match = verseRef.match(/(\d+):(\d+)/);
+  if (match) {
+    return `https://quran.com/${match[1]}/${match[2]}`;
+  }
+  return 'https://quran.com/1';
+}
+
+const RAW_WORDS: WordToken[] = [
   ...EXTRA_WORDS,
   {
     id: 'w-bismi',
@@ -42,6 +52,7 @@ export const WORDS: WordToken[] = [
       'id-ID': 'Terjemahan Kemenag RI 2019 & Kamus Kosakata Al-Qur’an',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman (JAKIM) & Leksikon Bahasa Arab al-Quran',
     },
+    sourceUrl: 'https://quran.com/1/1',
     rootFamily: {
       rootArabic: 'س - م - و',
       rootLatin: 's-m-w',
@@ -763,7 +774,13 @@ export const WORDS: WordToken[] = [
   },
 ];
 
-export const LESSONS: Lesson[] = [
+export const WORDS: WordToken[] = RAW_WORDS.map((w) => ({
+  ...w,
+  sourceUrl: w.sourceUrl || deriveSourceUrlFromVerseRef(w.verseRef),
+  audioUrl: w.audioUrl || resolveWordAudioUrl(w.id),
+}));
+
+const RAW_LESSONS: Lesson[] = [
   ...EXTRA_LESSONS,
   {
     id: 'lesson-ayah-1',
@@ -819,8 +836,10 @@ export const LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 5,
-    audioReciter: 'Audio Panduan Pelafalan Terverifikasi (Murattal Standar)',
-    audioLicense: 'Referensi Pelafalan Pendidikan Terbuka / Rasm Utsmani',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/1/1',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001001.mp3',
     wordIds: ['w-bismi', 'w-allahi', 'w-arrahmani', 'w-arrahimi'],
     structureSummary: {
       'id-ID':
@@ -1043,8 +1062,10 @@ export const LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 5,
-    audioReciter: 'Audio Panduan Pelafalan Terverifikasi',
-    audioLicense: 'Referensi Pelafalan Pendidikan Terbuka',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/1/2',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001002.mp3',
     wordIds: ['w-alhamdu', 'w-lillahi', 'w-rabbi', 'w-alamin'],
     structureSummary: {
       'id-ID':
@@ -1262,8 +1283,10 @@ export const LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 6,
-    audioReciter: 'Audio Panduan Bacaan Salat Terverifikasi',
-    audioLicense: 'Referensi Pendidikan Ibadah',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/1/5-6',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001005.mp3',
     wordIds: ['w-iyyaka', 'w-nabudu', 'w-nastain', 'w-ihdina'],
     structureSummary: {
       'id-ID':
@@ -1443,7 +1466,7 @@ export const LESSONS: Lesson[] = [
     durationMinutes: 6,
     sourceType: 'phonetics-tajwid',
     verseRef: 'QS. Al-Fatihah 1:1 (Latihan Bacaan)',
-    editorialStatus: 'educator-reviewed',
+    editorialStatus: 'curriculum-draft-pending-scholar-review',
     arabicPhrase: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ',
     transliterationPhrase: 'Bis-mil-laa-hir-rah-maa-nir-ra-hiim',
     verifiedTranslation: {
@@ -1481,8 +1504,10 @@ export const LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 6,
-    audioReciter: 'Panduan Talaqqi & Makhraj Terverifikasi',
-    audioLicense: 'Catatan: Gunakan audio sebagai panduan awal; koreksi makhraj terbaik dilakukan bersama guru.',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive · Catatan: Audio untuk latihan mandiri, bukan pengganti talaqqi guru.',
+    sourceUrl: 'https://quran.com/1/1',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001001.mp3',
     wordIds: ['w-bismi', 'w-allahi', 'w-arrahmani', 'w-arrahimi'],
     structureSummary: {
       'id-ID':
@@ -1667,7 +1692,7 @@ export const LESSONS: Lesson[] = [
     },
     sourceType: 'phonetics-tajwid',
     verseRef: 'QS. Al-Fatihah 1:2 (Latihan Bacaan)',
-    editorialStatus: 'educator-reviewed',
+    editorialStatus: 'curriculum-draft-pending-scholar-review',
     arabicPhrase: 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ',
     transliterationPhrase: 'Al-ham-du lil-laa-hi Rab-bil-‘aa-la-miin',
     verifiedTranslation: {
@@ -1705,8 +1730,10 @@ export const LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 5,
-    audioReciter: 'Panduan Talaqqi & Makhraj Terverifikasi',
-    audioLicense: 'Referensi Pendidikan Bacaan Al-Qur’an',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive · Catatan: Audio untuk latihan mandiri, bukan pengganti talaqqi guru.',
+    sourceUrl: 'https://quran.com/1/2',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001002.mp3',
     wordIds: ['w-alhamdu', 'w-lillahi', 'w-rabbi', 'w-alamin'],
     structureSummary: {
       'id-ID':
@@ -1929,8 +1956,10 @@ export const LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 7,
-    audioReciter: 'Audio Panduan Pelafalan Terverifikasi',
-    audioLicense: 'Referensi Pendidikan Terbuka',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/2/2',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/002002.mp3',
     wordIds: ['w-dzalika', 'w-alkitabu', 'w-ihdina'],
     structureSummary: {
       'id-ID':
@@ -2086,7 +2115,12 @@ export const LESSONS: Lesson[] = [
   },
 ];
 
-export const CURRICULUM_LEVELS: CurriculumLevel[] = [
+export const LESSONS: Lesson[] = [...RAW_LESSONS].sort((a, b) => {
+  if (a.level !== b.level) return a.level - b.level;
+  return a.order - b.order;
+});
+
+const RAW_CURRICULUM_LEVELS: CurriculumLevel[] = [
   ...EXTRA_CURRICULUM_LEVELS,
   {
     level: 1,
@@ -2192,6 +2226,10 @@ export const CURRICULUM_LEVELS: CurriculumLevel[] = [
   },
 ];
 
+export const CURRICULUM_LEVELS: CurriculumLevel[] = [...RAW_CURRICULUM_LEVELS].sort(
+  (a, b) => a.level - b.level
+);
+
 export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   {
     id: 'art-root-system',
@@ -2208,9 +2246,10 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     },
     readTimeMinutes: 4,
     sourceAttribution: {
-      'id-ID': 'Tim Kurikulum Bahasa Arab Faham Ayat · Merujuk pada Pengantar Ilmu Sharaf & Leksikon Al-Qur’an',
-      'ms-MY': 'Pasukan Kurikulum Bahasa Arab Faham Ayat · Merujuk kepada Pengantar Ilmu Saraf & Leksikon al-Quran',
+      'id-ID': 'Draf Kurikulum Bahasa Arab Faham Ayat · Merujuk pada Pengantar Ilmu Sharaf & Leksikon Al-Qur’an (Menunggu Tinjauan Akhir Ahli)',
+      'ms-MY': 'Draf Kurikulum Bahasa Arab Faham Ayat · Merujuk kepada Pengantar Ilmu Saraf & Leksikon al-Quran (Menunggu Semakan Akhir Pakar)',
     },
+    sourceUrl: 'https://corpus.quran.com/qurandictionary.jsp?q=rHm',
     arabicExcerpt: 'رَحْمَةٌ · ٱلرَّحْمَـٰنِ · ٱلرَّحِيمِ · ٱرْحَمْ',
     bodyParagraphs: [
       {
@@ -2249,9 +2288,10 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     },
     readTimeMinutes: 5,
     sourceAttribution: {
-      'id-ID': 'Materi Dasar Nahwu Al-Qur’an · Rujukan Ayat Kemenag RI',
-      'ms-MY': 'Bahan Asas Nahu al-Quran · Rujukan Ayat JAKIM Malaysia',
+      'id-ID': 'Ringkasan Kaidah Dasar Nahwu Al-Qur’an · Rujukan Ayat Kemenag RI (Draf Kurikulum)',
+      'ms-MY': 'Ringkasan Kaedah Asas Nahu al-Quran · Rujukan Ayat JAKIM Malaysia (Draf Kurikulum)',
     },
+    sourceUrl: 'https://quran.com/1/1',
     arabicExcerpt: 'بِسْمِ ٱللَّهِ · لِلَّهِ · لَا رَيْبَ فِيهِ',
     bodyParagraphs: [
       {
@@ -2285,8 +2325,9 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     readTimeMinutes: 5,
     sourceAttribution: {
       'id-ID': 'Modul Pemahaman Bacaan Salat · Rujukan Hadis Shahih Muslim No. 395',
-      'ms-MY': 'Modul Kefahaman Bacaan Solat · Selaras pendekatan Kursus Bahasa Arab Memahami al-Quran & Sahih Muslim No. 395',
+      'ms-MY': 'Modul Kefahaman Bacaan Solat · Rujukan Hadis Sahih Muslim No. 395',
     },
+    sourceUrl: 'https://sunnah.com/muslim:395a',
     arabicExcerpt: 'سَمِعَ ٱللَّهُ لِمَنْ حَمِدَهُ',
     bodyParagraphs: [
       {
@@ -2319,22 +2360,23 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     },
     readTimeMinutes: 4,
     sourceAttribution: {
-      'id-ID': 'Dewan Peninjau Metodologi Faham Ayat',
-      'ms-MY': 'Panel Semakan Metodologi Faham Ayat',
+      'id-ID': 'Dokumentasi Metodologi Kurikulum Faham Ayat (Catatan Batasan Alat Digital)',
+      'ms-MY': 'Dokumentasi Metodologi Kurikulum Faham Ayat (Nota Batasan Alat Digital)',
     },
+    sourceUrl: 'https://quran.com/73/4',
     arabicExcerpt: 'وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا',
     bodyParagraphs: [
       {
         'id-ID':
-          'Belajar mandiri menggunakan audio terverifikasi dan visualisasi tajwid sangat membantu untuk mengenali tanda waqaf, panjang-pendek mad, serta membedakan Alif-Lam Syamsiyah dan Qamariyah sebelum hadir di majelis ilmu.',
+          'Belajar mandiri menggunakan rekaman qari terverifikasi dan visualisasi tajwid membantu mengenali tanda waqaf, panjang-pendek mad, serta membedakan Alif-Lam Syamsiyah dan Qamariyah sebelum hadir di majelis ilmu.',
         'ms-MY':
-          'Pembelajaran kendiri menggunakan audio yang disahkan dan visualisasi tajwid amat membantu untuk mengenali tanda waqaf, kadar panjang mad serta membezakan Alif-Lam Syamsiyyah dan Qamariyyah sebelum menghadiri kelas pengajian.',
+          'Pembelajaran kendiri menggunakan rakaman qari yang disahkan dan visualisasi tajwid membantu mengenali tanda waqaf, kadar panjang mad serta membezakan Alif-Lam Syamsiyyah dan Qamariyyah sebelum menghadiri kelas pengajian.',
       },
       {
         'id-ID':
-          'Namun, ketepatan makharijul huruf dan sifat-sifat huruf membutuhkan pendengaran dan koreksi langsung (musyafahah/talaqqi) dari guru yang kompeten. Karena itu, Faham Ayat tidak pernah mengklaim bahwa algoritma otomatis dapat menggantikan peran guru Al-Qur’an.',
+          'Namun, ketepatan makharijul huruf dan sifat-sifat huruf membutuhkan pendengaran dan koreksi langsung (musyafahah/talaqqi) dari guru yang kompeten. Karena itu, Faham Ayat tidak pernah mengklaim bahwa pemutar audio otomatis dapat menggantikan peran guru Al-Qur’an.',
         'ms-MY':
-          'Walau bagaimanapun, ketepatan makhraj huruf dan sifat-sifat huruf memerlukan pendengaran serta teguran langsung (musyafahah/talaqqi) daripada guru yang bertauliah. Oleh sebab itu, Faham Ayat tidak sekali-kali mendakwa bahawa algoritma automatik boleh menggantikan peranan guru al-Quran.',
+          'Walau bagaimanapun, ketepatan makhraj huruf dan sifat-sifat huruf memerlukan pendengaran serta teguran langsung (musyafahah/talaqqi) daripada guru yang bertauliah. Oleh sebab itu, Faham Ayat tidak sekali-kali mendakwa bahawa pemain audio automatik boleh menggantikan peranan guru al-Quran.',
       },
     ],
     relatedPathwayId: 'quran-reading',

@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Compass,
   Clock,
+  Sparkles,
+  UserCheck,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -18,6 +20,7 @@ interface DashboardViewProps {
   onStartLesson: (lessonId: string) => void;
   onNavigate: (screen: AppScreen) => void;
   onOpenOnboarding: () => void;
+  onToggleDemoMode?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -26,6 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onStartLesson,
   onNavigate,
   onOpenOnboarding,
+  onToggleDemoMode,
 }) => {
   const dueItems = getDueReviewItems(progress.reviewQueue, Date.now());
   const recommendedLesson =
@@ -44,6 +48,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
+      {/* Explicit Demo Mode Banner */}
+      {progress.isDemoMode && (
+        <div
+          role="status"
+          className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#D8A75B] shrink-0" />
+            <span>
+              {locale === 'id-ID'
+                ? 'Mode Data Demo Aktif: Menampilkan contoh kemajuan belajar, kata tersimpan, dan jadwal ulasan untuk keperluan presentasi.'
+                : 'Mod Data Demo Aktif: Memaparkan contoh kemajuan pembelajaran, perkataan disimpan dan jadual ulang kaji untuk tujuan pembentangan.'}
+            </span>
+          </div>
+          {onToggleDemoMode && (
+            <button
+              type="button"
+              onClick={onToggleDemoMode}
+              className="px-3 py-1.5 rounded-lg bg-white text-amber-950 font-semibold border border-amber-300 hover:bg-amber-100 text-xs"
+            >
+              {locale === 'id-ID'
+                ? 'Kembali ke Status Awal Kosong'
+                : 'Kembali kepada Keadaan Awal Kosong'}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -56,18 +88,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               : 'Teruskan perjalanan memahami al-Quran'}
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={onOpenOnboarding}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white border border-[#1C2724]/15 text-[#1C2724] hover:bg-[#DDEBE3]/60 self-start sm:self-auto"
-        >
-          <Compass className="w-4 h-4 text-[#145A4A]" />
-          <span>
-            {locale === 'id-ID'
-              ? 'Sesuaikan Ulang Jalur & Target'
-              : 'Sesuaikan Semula Laluan & Sasaran'}
-          </span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {!progress.isDemoMode && onToggleDemoMode && (
+            <button
+              type="button"
+              onClick={onToggleDemoMode}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-[#F7F5EF] border border-[#1C2724]/15 text-[#145A4A] hover:bg-[#DDEBE3]"
+            >
+              <Sparkles className="w-4 h-4 text-[#D8A75B]" />
+              <span>
+                {locale === 'id-ID' ? 'Muat Data Demo' : 'Muatkan Data Demo'}
+              </span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onOpenOnboarding}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white border border-[#1C2724]/15 text-[#1C2724] hover:bg-[#DDEBE3]/60"
+          >
+            <Compass className="w-4 h-4 text-[#145A4A]" />
+            <span>
+              {locale === 'id-ID'
+                ? 'Sesuaikan Ulang Jalur & Target'
+                : 'Sesuaikan Semula Laluan & Sasaran'}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Top Action Grid: Recommended Next Lesson & Spaced Repetition Review */}
@@ -205,30 +251,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {locale === 'id-ID' ? 'Buka Pustaka Kata' : 'Buka Pustaka Kosa Kata'}
             </button>
           </div>
-          <div className="mt-4 space-y-2.5">
-            {learnedWords.slice(0, 4).map((w) => (
-              <div
-                key={w.id}
-                className="p-3 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/8 flex items-center justify-between"
-              >
-                <div>
-                  <div className="text-xs font-bold text-[#1C2724]">
-                    {w.transliteration} — {w.contextualMeaning[locale]}
-                  </div>
-                  <div className="text-[11px] text-[#1C2724]/60">
-                    {w.verseRef} · {w.grammaticalRole[locale]}
-                  </div>
-                </div>
-                <span
-                  dir="rtl"
-                  lang="ar"
-                  className="font-arabic text-2xl text-[#145A4A] font-bold"
+          {learnedWords.length === 0 ? (
+            <div className="py-8 text-center text-xs text-[#1C2724]/65 space-y-2">
+              <p>
+                {locale === 'id-ID'
+                  ? 'Belum ada kata yang dipelajari. Selesaikan Langkah 7 pada Pelajaran 1 untuk menambahkan kosakata pertama Anda.'
+                  : 'Belum ada perkataan yang dipelajari. Selesaikan Langkah 7 dalam Pelajaran 1 untuk menambah kosa kata pertama anda.'}
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4 space-y-2.5">
+              {learnedWords.slice(0, 4).map((w) => (
+                <div
+                  key={w.id}
+                  className="p-3 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/8 flex items-center justify-between"
                 >
-                  {w.arabic}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#1C2724]">
+                      {w.transliteration} — {w.contextualMeaning[locale]}
+                    </div>
+                    <div className="text-[11px] text-[#1C2724]/60">
+                      {w.verseRef} · {w.grammaticalRole[locale]}
+                    </div>
+                  </div>
+                  <span
+                    dir="rtl"
+                    lang="ar"
+                    className="font-arabic text-2xl text-[#145A4A] font-bold"
+                  >
+                    {w.arabic}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Saved Bookmarks */}
@@ -285,6 +341,47 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* Path B Teacher Review Queue Requests */}
+      {progress.teacherReviewRequests && progress.teacherReviewRequests.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 border border-[#1C2724]/12 space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-[#1C2724]/10">
+            <h3 className="text-base font-bold text-[#1C2724] flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-[#145A4A]" />
+              <span>
+                {locale === 'id-ID'
+                  ? `Antrean Permohonan Semakan Bacaan (${progress.teacherReviewRequests.length})`
+                  : `Giliran Permohonan Semakan Bacaan (${progress.teacherReviewRequests.length})`}
+              </span>
+            </h3>
+            <span className="text-xs text-[#1C2724]/60">
+              {locale === 'id-ID'
+                ? 'Tercatat di Server (/api/teacher-reviews)'
+                : 'Direkodkan di Pelayan (/api/teacher-reviews)'}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {progress.teacherReviewRequests.map((req) => (
+              <div
+                key={req.id}
+                className="p-3.5 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/10 flex flex-wrap items-center justify-between gap-2 text-xs"
+              >
+                <div>
+                  <span className="font-bold text-[#145A4A]">#{req.id}</span> ·{' '}
+                  <span className="font-semibold text-[#1C2724]">{req.focusNote}</span>
+                </div>
+                <span className="px-2.5 py-1 rounded-md bg-white border border-[#1C2724]/10 text-[#1C2724]/75 font-medium">
+                  {req.status === 'received-in-queue'
+                    ? locale === 'id-ID'
+                      ? 'Dalam Antrean Permohonan (Belum Dijadwalkan)'
+                      : 'Dalam Giliran Permohonan (Belum Dijadualkan)'
+                    : req.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

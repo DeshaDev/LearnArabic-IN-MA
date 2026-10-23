@@ -1,32 +1,106 @@
 import React, { useState } from 'react';
-import { LearnerProgress, LocaleCode, WordToken } from '../types/learning';
+import {
+  AudioPlaybackMode,
+  LearnerProgress,
+  LocaleCode,
+  WordToken,
+} from '../types/learning';
 import { WORDS } from '../data/curriculum';
 import { getDueReviewItems } from '../utils/learningEngine';
 import { audioController } from '../utils/audioPlayer';
-import { CheckCircle2, AlertCircle, Volume2, ArrowRight, RotateCcw } from 'lucide-react';
+import {
+  CheckCircle2,
+  AlertCircle,
+  Volume2,
+  ArrowRight,
+  RotateCcw,
+  BookOpen,
+  Sparkles,
+} from 'lucide-react';
 
 interface ReviewCenterViewProps {
   locale: LocaleCode;
   progress: LearnerProgress;
   onRecordReviewResult: (wordId: string, isCorrect: boolean) => void;
+  onStartFirstLesson?: () => void;
+  onEnableDemoMode?: () => void;
 }
 
 export const ReviewCenterView: React.FC<ReviewCenterViewProps> = ({
   locale,
   progress,
   onRecordReviewResult,
+  onStartFirstLesson,
+  onEnableDemoMode,
 }) => {
   const dueItems = getDueReviewItems(progress.reviewQueue, Date.now());
   const reviewWordIds =
     dueItems.length > 0
       ? dueItems.map((i) => i.wordId)
-      : progress.learnedWordIds.length > 0
-      ? progress.learnedWordIds
-      : ['w-bismi', 'w-arrahmani', 'w-alhamdu', 'w-iyyaka'];
+      : progress.learnedWordIds;
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [sessionCompletedCount, setSessionCompletedCount] = useState<number>(0);
+  const [audioMode, setAudioMode] = useState<AudioPlaybackMode>('idle');
+
+  if (reviewWordIds.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-6">
+        <div>
+          <div className="text-xs font-semibold text-[#145A4A]">
+            {locale === 'id-ID'
+              ? 'Pusat Ulasan Berjarak (Spaced Repetition)'
+              : 'Pusat Ulang Kaji Berjarak (Spaced Repetition)'}
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1C2724] mt-1">
+            {locale === 'id-ID'
+              ? 'Antrean Ulasan Anda Masih Kosong'
+              : 'Giliran Ulang Kaji Anda Masih Kosong'}
+          </h1>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#1C2724]/12 space-y-4">
+          <p className="text-sm text-[#1C2724]/80 leading-relaxed">
+            {locale === 'id-ID'
+              ? 'Sesuai prinsip integritas pembelajaran kami, antrean ulasan berjarak hanya berisi kata-kata yang benar-benar telah Anda pelajari melalui Ayat Explorer. Belum ada kata yang dijadwalkan karena Anda belum menyelesaikan pelajaran pertama.'
+              : 'Selaras dengan prinsip integriti pembelajaran kami, giliran ulang kaji berjarak hanya mengandungi perkataan yang benar-benar telah anda pelajari melalui Ayat Explorer. Belum ada perkataan yang dijadualkan kerana anda belum menamatkan pelajaran pertama.'}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            {onStartFirstLesson && (
+              <button
+                type="button"
+                onClick={onStartFirstLesson}
+                className="px-5 py-2.5 rounded-xl bg-[#145A4A] text-white text-xs sm:text-sm font-semibold hover:bg-[#10483B] inline-flex items-center gap-2"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>
+                  {locale === 'id-ID'
+                    ? 'Mulai Pelajaran Pertama (QS. Al-Fatihah 1:1)'
+                    : 'Mulakan Pelajaran Pertama (QS. al-Fatihah 1:1)'}
+                </span>
+              </button>
+            )}
+            {onEnableDemoMode && (
+              <button
+                type="button"
+                onClick={onEnableDemoMode}
+                className="px-4 py-2.5 rounded-xl bg-[#F7F5EF] text-[#145A4A] border border-[#145A4A]/25 hover:bg-[#DDEBE3] text-xs sm:text-sm font-semibold inline-flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>
+                  {locale === 'id-ID'
+                    ? 'Muat Contoh Data Demo untuk Presentasi'
+                    : 'Muatkan Contoh Data Demo untuk Pembentangan'}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentWordId = reviewWordIds[currentIndex % reviewWordIds.length];
   const currentWord: WordToken =
@@ -46,6 +120,7 @@ export const ReviewCenterView: React.FC<ReviewCenterViewProps> = ({
 
   const handleNextWord = () => {
     setSelectedChoice(null);
+    setAudioMode('idle');
     setCurrentIndex((i) => i + 1);
   };
 
@@ -80,10 +155,14 @@ export const ReviewCenterView: React.FC<ReviewCenterViewProps> = ({
           <button
             type="button"
             onClick={() =>
-              audioController.speakArabic(
+              audioController.playWordAudio(
+                currentWord.id,
                 currentWord.arabic,
-                0.85,
-                currentWord.audioFreqHz
+                1.0,
+                undefined,
+                undefined,
+                currentWord.audioUrl,
+                (mode) => setAudioMode(mode)
               )
             }
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#DDEBE3] text-[#145A4A] font-semibold"
@@ -94,6 +173,34 @@ export const ReviewCenterView: React.FC<ReviewCenterViewProps> = ({
             </span>
           </button>
         </div>
+
+        {audioMode !== 'idle' && (
+          <div
+            role="status"
+            className={`px-3.5 py-2 rounded-xl border text-xs ${
+              audioMode === 'verified-recording'
+                ? 'bg-[#DDEBE3]/60 border-[#145A4A]/25 text-[#145A4A]'
+                : audioMode === 'loading'
+                ? 'bg-[#F7F5EF] border-[#1C2724]/15 text-[#1C2724]/75'
+                : 'bg-amber-50 border-amber-300 text-amber-950'
+            }`}
+          >
+            {audioMode === 'verified-recording' &&
+              (locale === 'id-ID'
+                ? '✓ Memutar rekaman kata terverifikasi (Quran.com Word-by-Word / EveryAyah).'
+                : '✓ Memainkan rakaman perkataan disahkan (Quran.com Word-by-Word / EveryAyah).')}
+            {audioMode === 'loading' &&
+              (locale === 'id-ID' ? 'Memuat rekaman audio...' : 'Memuatkan rakaman audio...')}
+            {audioMode === 'synthetic-tts-fallback' &&
+              (locale === 'id-ID'
+                ? '⚠ Bantuan Sebutan Sintetis Peramban (TTS): Suara sintetis bukan rekaman qari.'
+                : '⚠ Bantuan Sebutan Sintetik Pelayar (TTS): Suara sintetik bukan rakaman qari.')}
+            {audioMode === 'unavailable' &&
+              (locale === 'id-ID'
+                ? '⚠ Audio pelafalan tidak tersedia di lingkungan peramban ini.'
+                : '⚠ Audio sebutan tidak tersedia dalam persekitaran pelayar ini.')}
+          </div>
+        )}
 
         <div className="p-6 rounded-2xl bg-[#F7F5EF] border border-[#1C2724]/10 text-center">
           <div
@@ -200,7 +307,9 @@ export const ReviewCenterView: React.FC<ReviewCenterViewProps> = ({
           <RotateCcw className="w-4 h-4 text-[#145A4A]" />
         </div>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {WORDS.slice(0, 6).map((w) => {
+          {reviewWordIds.map((wId) => {
+            const w = WORDS.find((word) => word.id === wId);
+            if (!w) return null;
             const item = progress.reviewQueue[w.id];
             return (
               <div
@@ -217,8 +326,8 @@ export const ReviewCenterView: React.FC<ReviewCenterViewProps> = ({
                         ? `Interval: ${item.intervalDays} hari · Benar beruntun: ${item.correctStreak}x`
                         : `Sela masa: ${item.intervalDays} hari · Betul berturut: ${item.correctStreak}x`
                       : locale === 'id-ID'
-                      ? 'Siap dipelajari'
-                      : 'Sedia dipelajari'}
+                      ? 'Dipelajari'
+                      : 'Dipelajari'}
                   </div>
                 </div>
                 <span

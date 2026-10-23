@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AuthUser,
   DiagnosticAnswers,
@@ -8,6 +8,7 @@ import {
   LocaleCode,
   PathwayId,
   PlacementRecommendation,
+  TeacherReviewRequest,
 } from './types/learning';
 import { LOCALES } from './data/locales';
 import { LESSONS } from './data/curriculum';
@@ -28,7 +29,7 @@ import { ResourcesView } from './components/ResourcesView';
 import { SettingsView } from './components/SettingsView';
 import { InfoPagesModal, AuthModal } from './components/InfoPagesModal';
 
-const STORAGE_KEY = 'faham_ayat_learner_progress_v1';
+const STORAGE_KEY = 'faham_ayat_learner_progress_v2';
 
 function detectInitialLocale(): LocaleCode {
   if (typeof window !== 'undefined') {
@@ -43,13 +44,38 @@ function detectInitialLocale(): LocaleCode {
   return 'id-ID';
 }
 
-function getDefaultProgress(locale: LocaleCode): LearnerProgress {
-  const now = Date.now();
+export function getDefaultProgress(locale: LocaleCode): LearnerProgress {
   return {
     locale,
     onboardingCompleted: false,
     activePathway: 'understand-quran',
     completedLessonIds: [],
+    bookmarkedWordIds: [],
+    learnedWordIds: [],
+    reviewQueue: {},
+    lessonQuizScores: {},
+    reflections: {},
+    dailyGoalMinutes: 10,
+    showTransliteration: true,
+    arabicFontScale: 'large',
+    remindersEnabled: false,
+    ramadanModeEnabled: false,
+    isDemoMode: false,
+    user: null,
+    authToken: null,
+    lastSyncedAt: null,
+    teacherReviewRequests: [],
+    analyticsEvents: [],
+  };
+}
+
+export function getDemoProgress(locale: LocaleCode): LearnerProgress {
+  const now = Date.now();
+  return {
+    locale,
+    onboardingCompleted: true,
+    activePathway: 'understand-quran',
+    completedLessonIds: ['lesson-ayah-1'],
     bookmarkedWordIds: ['w-arrahmani', 'w-alhamdu'],
     learnedWordIds: ['w-bismi', 'w-allahi', 'w-arrahmani', 'w-arrahimi'],
     reviewQueue: {
@@ -70,14 +96,24 @@ function getDefaultProgress(locale: LocaleCode): LearnerProgress {
         demonstratedMastery: false,
       },
     },
-    lessonQuizScores: {},
-    reflections: {},
+    lessonQuizScores: {
+      'lesson-ayah-1': { score: 3, total: 3, timestamp: now - 3600_000 },
+    },
+    reflections: {
+      'lesson-ayah-1':
+        locale === 'id-ID'
+          ? 'Contoh catatan refleksi demo: Mengenali akar kata ر-ح-م membantu saya merenungi keluasan rahmat Allah saat memulai aktivitas.'
+          : 'Contoh nota refleksi demo: Mengenali akar perkataan ر-ح-م membantu saya menghayati keluasan rahmat Allah ketika memulakan amalan.',
+    },
     dailyGoalMinutes: 10,
     showTransliteration: true,
     arabicFontScale: 'large',
     remindersEnabled: false,
     ramadanModeEnabled: false,
+    isDemoMode: true,
     user: null,
+    authToken: null,
+    lastSyncedAt: null,
     teacherReviewRequests: [],
     analyticsEvents: [],
   };
@@ -88,6 +124,10 @@ export function App() {
     const initialLocale = detectInitialLocale();
     if (typeof window !== 'undefined') {
       try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('demo') === '1') {
+          return getDemoProgress(initialLocale);
+        }
         const saved = window.localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved) as LearnerProgress;
@@ -99,7 +139,7 @@ export function App() {
           return parsed;
         }
       } catch {
-        // Fallback to default seed progress
+        // Fallback to clean default progress
       }
     }
     return getDefaultProgress(initialLocale);
@@ -122,6 +162,8 @@ export function App() {
   const [selectedArticle, setSelectedArticle] =
     useState<EditorialArticle | null>(null);
 
+  const isSyncingRef = useRef<boolean>(false);
+
   // Sync progress to localStorage
   useEffect(() => {
     try {
@@ -131,7 +173,70 @@ export function App() {
     }
   }, [progress]);
 
-  // Sync document lang, title, meta description, and locale URL (/id/ or /my/)
+  // Sync authenticated learner progress to backend /api/progress
+  useEffect(() => {
+    if (!progress.authToken || !progress.user || isSyncingRef.current) return;
+    const timer = setTimeout(async () => {
+      try {
+        isSyncingRef.current = true;
+        const response = await fetch('/api/progress', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${progress.authToken}`,
+          },
+          body: JSON.stringify({
+            progress: {
+              locale: progress.locale,
+              onboardingCompleted: progress.onboardingCompleted,
+              diagnostic: progress.diagnostic,
+              recommendation: progress.recommendation,
+              activePathway: progress.activePathway,
+              completedLessonIds: progress.completedLessonIds,
+              bookmarkedWordIds: progress.bookmarkedWordIds,
+              learnedWordIds: progress.learnedWordIds,
+              reviewQueue: progress.reviewQueue,
+              lessonQuizScores: progress.lessonQuizScores,
+              reflections: progress.reflections,
+              dailyGoalMinutes: progress.dailyGoalMinutes,
+              showTransliteration: progress.showTransliteration,
+              arabicFontScale: progress.arabicFontScale,
+              remindersEnabled: progress.remindersEnabled,
+              ramadanModeEnabled: progress.ramadanModeEnabled,
+              teacherReviewRequests: progress.teacherReviewRequests,
+            },
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ok && data.syncedAt) {
+            setProgress((prev) =>
+              prev.lastSyncedAt === data.syncedAt
+                ? prev
+                : { ...prev, lastSyncedAt: data.syncedAt }
+            );
+          }
+        }
+      } catch {
+        // Do not claim sync succeeded if network/server failed
+      } finally {
+        isSyncingRef.current = false;
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [
+    progress.authToken,
+    progress.completedLessonIds,
+    progress.bookmarkedWordIds,
+    progress.learnedWordIds,
+    progress.reviewQueue,
+    progress.reflections,
+    progress.dailyGoalMinutes,
+    progress.activePathway,
+  ]);
+
+  // Sync document lang, title, meta description, canonical, and locale URL (/id/ or /my/)
   useEffect(() => {
     const dict = LOCALES[progress.locale];
     document.documentElement.lang = progress.locale === 'id-ID' ? 'id' : 'ms';
@@ -139,6 +244,10 @@ export function App() {
     const descMeta = document.querySelector('meta[name="description"]');
     if (descMeta) {
       descMeta.setAttribute('content', dict.seoDescription);
+    }
+    const canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.setAttribute('href', dict.urlPrefix);
     }
     try {
       const targetPrefix = dict.urlPrefix;
@@ -184,6 +293,15 @@ export function App() {
         { eventName: 'locale_selected', timestamp: Date.now(), metadata: newLocale },
       ],
     }));
+  };
+
+  const handleToggleDemoMode = () => {
+    setProgress((prev) => {
+      if (prev.isDemoMode) {
+        return getDefaultProgress(prev.locale);
+      }
+      return getDemoProgress(prev.locale);
+    });
   };
 
   const handleToggleBookmark = (wordId: string) => {
@@ -330,26 +448,41 @@ export function App() {
     }));
   };
 
-  const handleRequestTeacherReview = (lessonId: string, focusNote: string) => {
+  const handleRequestTeacherReview = (
+    lessonId: string,
+    focusNote: string,
+    focusArea?: TeacherReviewRequest['focusArea'],
+    serverTicketId?: string
+  ) => {
     setProgress((prev) => ({
       ...prev,
       teacherReviewRequests: [
         ...(prev.teacherReviewRequests || []),
         {
-          id: `tr-${Date.now()}`,
+          id: serverTicketId || `TR-${Date.now()}`,
           lessonId,
+          focusArea,
           focusNote,
-          status: 'scheduled',
+          status: 'received-in-queue',
           submittedAt: Date.now(),
         },
       ],
     }));
   };
 
-  const handleSignIn = (user: AuthUser) => {
+  const handleSignInSuccess = (
+    user: AuthUser,
+    authToken: string,
+    serverProgress?: Partial<LearnerProgress> | null,
+    syncedAt?: number
+  ) => {
     setProgress((prev) => ({
       ...prev,
+      ...(serverProgress || {}),
+      locale: prev.locale,
       user,
+      authToken,
+      lastSyncedAt: syncedAt || Date.now(),
     }));
   };
 
@@ -357,6 +490,8 @@ export function App() {
     setProgress((prev) => ({
       ...prev,
       user: null,
+      authToken: null,
+      lastSyncedAt: null,
     }));
   };
 
@@ -384,6 +519,8 @@ export function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         userName={progress.user?.name}
         dueReviewCount={dueReviewCount}
+        isDemoMode={progress.isDemoMode}
+        onToggleDemoMode={handleToggleDemoMode}
       />
 
       <main className="flex-1">
@@ -419,6 +556,7 @@ export function App() {
             onStartLesson={handleStartLesson}
             onNavigate={setActiveScreen}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
+            onToggleDemoMode={handleToggleDemoMode}
           />
         )}
 
@@ -460,6 +598,8 @@ export function App() {
             locale={progress.locale}
             progress={progress}
             onRecordReviewResult={handleRecordReviewResult}
+            onStartFirstLesson={() => handleStartLesson('lesson-ayah-1')}
+            onEnableDemoMode={handleToggleDemoMode}
           />
         )}
 
@@ -489,6 +629,7 @@ export function App() {
             onResetProgress={() =>
               setProgress(getDefaultProgress(progress.locale))
             }
+            onToggleDemoMode={handleToggleDemoMode}
           />
         )}
       </main>
@@ -512,8 +653,10 @@ export function App() {
         isOpen={isAuthOpen}
         locale={progress.locale}
         currentUser={progress.user}
+        lastSyncedAt={progress.lastSyncedAt}
+        currentProgress={progress}
         onClose={() => setIsAuthOpen(false)}
-        onSignIn={handleSignIn}
+        onSignInSuccess={handleSignInSuccess}
         onSignOut={handleSignOut}
       />
     </div>

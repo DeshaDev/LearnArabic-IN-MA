@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LearnerProgress, LocaleCode } from '../types/learning';
-import { CheckCircle2, RotateCcw } from 'lucide-react';
+import { CheckCircle2, RotateCcw, Sparkles } from 'lucide-react';
 
 interface SettingsViewProps {
   locale: LocaleCode;
@@ -8,6 +8,7 @@ interface SettingsViewProps {
   onLocaleChange: (locale: LocaleCode) => void;
   onUpdateSettings: (partial: Partial<LearnerProgress>) => void;
   onResetProgress: () => void;
+  onToggleDemoMode?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -16,6 +17,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onLocaleChange,
   onUpdateSettings,
   onResetProgress,
+  onToggleDemoMode,
 }) => {
   const [savedNotice, setSavedNotice] = useState<boolean>(false);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
@@ -199,18 +201,64 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
+        {/* Demo Mode Toggle for Presentations */}
+        {onToggleDemoMode && (
+          <div className="pt-5 border-t border-[#1C2724]/10 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-sm font-bold text-[#1C2724] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#D8A75B]" />
+                <span>
+                  {locale === 'id-ID'
+                    ? 'Mode Data Contoh (Presentasi / Demo)'
+                    : 'Mod Data Contoh (Pembentangan / Demo)'}
+                </span>
+              </div>
+              <p className="text-xs text-[#1C2724]/65 mt-0.5">
+                {locale === 'id-ID'
+                  ? 'Secara bawaan, pengguna baru mulai dengan status bersih (0 kata, 0 pelajaran selesai). Aktifkan mode ini jika ingin meninjau aplikasi dengan data contoh.'
+                  : 'Secara lalai, pengguna baharu bermula dengan keadaan bersih (0 perkataan, 0 pelajaran selesai). Aktifkan mod ini jika ingin meninjau aplikasi dengan data contoh.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onToggleDemoMode();
+                triggerSaved();
+              }}
+              aria-pressed={Boolean(progress.isDemoMode)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border ${
+                progress.isDemoMode
+                  ? 'bg-amber-100 text-amber-950 border-amber-400'
+                  : 'bg-[#F7F5EF] text-[#1C2724] border-[#1C2724]/15 hover:bg-[#DDEBE3]'
+              }`}
+            >
+              {progress.isDemoMode
+                ? locale === 'id-ID'
+                  ? 'Mode Demo Aktif (Matikan)'
+                  : 'Mod Demo Aktif (Matikan)'
+                : locale === 'id-ID'
+                ? 'Aktifkan Mode Demo'
+                : 'Aktifkan Mod Demo'}
+            </button>
+          </div>
+        )}
+
         {/* Data Privacy & Reset */}
         <div className="pt-5 border-t border-[#1C2724]/10 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-sm font-bold text-[#1C2724]">
               {locale === 'id-ID'
-                ? 'Privasi & Penyimpanan Kemajuan Lokal'
-                : 'Privasi & Simpanan Kemajuan Tempatan'}
+                ? 'Privasi, Sinkronisasi Server & Reset Data'
+                : 'Privasi, Penyegerakan Pelayan & Tetapan Semula Data'}
             </div>
             <p className="text-xs text-[#1C2724]/65 mt-0.5">
-              {locale === 'id-ID'
-                ? 'Kemajuan belajar, kata tersimpan, dan catatan refleksi disimpan di perangkat Anda.'
-                : 'Kemajuan pembelajaran, perkataan disimpan dan nota refleksi disimpan pada peranti anda.'}
+              {progress.user && progress.lastSyncedAt
+                ? locale === 'id-ID'
+                  ? `Tersinkronisasi dengan akun ${progress.user.email} di server (/api/progress).`
+                  : `Disegerakkan dengan akaun ${progress.user.email} pada pelayan (/api/progress).`
+                : locale === 'id-ID'
+                ? 'Disimpan secara lokal di peramban perangkat ini (belum masuk ke akun server).'
+                : 'Disimpan secara tempatan pada pelayar peranti ini (belum log masuk ke akaun pelayan).'}
             </p>
           </div>
 

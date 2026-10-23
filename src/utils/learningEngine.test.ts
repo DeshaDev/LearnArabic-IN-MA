@@ -195,3 +195,29 @@ test('isLessonUnlocked respects prerequisite completion and placement level unlo
   const metrics = computeSkillBreakdown(completedPrereqProgress, []);
   assert.equal(metrics.length, 5);
 });
+
+test('all curriculum lessons and editorial articles maintain explicit editorialStatus and clickable sourceUrl', async () => {
+  const { LESSONS, WORDS, EDITORIAL_ARTICLES } = await import('../data/curriculum');
+  assert.ok(LESSONS.length >= 6);
+  for (const lesson of LESSONS) {
+    assert.ok(
+      lesson.editorialStatus === 'verified-source' ||
+        lesson.editorialStatus === 'curriculum-draft-pending-scholar-review',
+      `Lesson ${lesson.id} must have valid editorialStatus`
+    );
+    assert.ok(lesson.sourceUrl && lesson.sourceUrl.startsWith('https://'), `Lesson ${lesson.id} must have https sourceUrl`);
+    if (lesson.id === 'lesson-prayer-2') {
+      // Hadith dhikr lesson intentionally omits Quran recitation MP3 so it does not misrepresent surah audio
+      assert.equal(lesson.audioUrl, undefined);
+    } else {
+      assert.ok(lesson.audioUrl && lesson.audioUrl.startsWith('https://'), `Lesson ${lesson.id} must have https audioUrl`);
+    }
+  }
+  for (const word of WORDS) {
+    assert.ok(word.sourceUrl && word.sourceUrl.startsWith('https://'), `Word ${word.id} must have https sourceUrl`);
+  }
+  for (const article of EDITORIAL_ARTICLES) {
+    assert.ok(article.sourceUrl && article.sourceUrl.startsWith('https://'), `Article ${article.id} must have https sourceUrl`);
+  }
+});
+

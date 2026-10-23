@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EditorialArticle, LocaleCode, PathwayId } from '../types/learning';
 import { EDITORIAL_ARTICLES } from '../data/curriculum';
-import { Search, FileText, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Search, FileText, ArrowRight, ShieldCheck, ExternalLink } from 'lucide-react';
 
 interface ResourcesViewProps {
   locale: LocaleCode;
@@ -138,9 +138,22 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
         {activeArticle && (
           <article className="lg:col-span-7 bg-white rounded-2xl p-6 sm:p-8 border border-[#1C2724]/12 space-y-5">
             <div className="pb-4 border-b border-[#1C2724]/10">
-              <div className="text-xs text-[#145A4A] font-semibold flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4" />
-                <span>{activeArticle.sourceAttribution[locale]}</span>
+              <div className="text-xs text-[#145A4A] font-semibold flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>{activeArticle.sourceAttribution[locale]}</span>
+                </span>
+                {activeArticle.sourceUrl && (
+                  <a
+                    href={activeArticle.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[#145A4A] hover:underline"
+                  >
+                    <span>{locale === 'id-ID' ? 'Buka Rujukan' : 'Buka Rujukan'}</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-[#1C2724] mt-2">
                 {activeArticle.title[locale]}

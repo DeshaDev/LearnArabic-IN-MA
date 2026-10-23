@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  AudioPlaybackMode,
   GrammaticalCategory,
   LearnerProgress,
   LocaleCode,
@@ -9,7 +10,7 @@ import { WORDS } from '../data/curriculum';
 import { LOCALES } from '../data/locales';
 import { filterVocabulary } from '../utils/learningEngine';
 import { audioController } from '../utils/audioPlayer';
-import { Search, Volume2, Bookmark, Check } from 'lucide-react';
+import { Search, Volume2, Bookmark, Check, ExternalLink } from 'lucide-react';
 
 interface VocabularyViewProps {
   locale: LocaleCode;
@@ -28,6 +29,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
   const [stage, setStage] = useState<number | 'all'>('all');
   const [onlyBookmarked, setOnlyBookmarked] = useState<boolean>(false);
   const [selectedWordId, setSelectedWordId] = useState<string>(WORDS[2].id);
+  const [audioMode, setAudioMode] = useState<AudioPlaybackMode>('idle');
 
   const filteredWords = filterVocabulary(WORDS, {
     query,
@@ -42,10 +44,14 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
     filteredWords.find((w) => w.id === selectedWordId) || filteredWords[0];
 
   const handlePlayWord = (word: WordToken) => {
-    audioController.speakArabic(
+    audioController.playWordAudio(
+      word.id,
       word.arabic,
-      0.8,
-      word.audioFreqHz || [349.23, 392.0]
+      1.0,
+      undefined,
+      undefined,
+      word.audioUrl,
+      (mode) => setAudioMode(mode)
     );
   };
 
@@ -270,6 +276,34 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
                 </div>
               </div>
 
+              {audioMode !== 'idle' && (
+                <div
+                  role="status"
+                  className={`px-3.5 py-2.5 rounded-xl border text-xs ${
+                    audioMode === 'verified-recording'
+                      ? 'bg-[#DDEBE3]/60 border-[#145A4A]/25 text-[#145A4A]'
+                      : audioMode === 'loading'
+                      ? 'bg-[#F7F5EF] border-[#1C2724]/15 text-[#1C2724]/75'
+                      : 'bg-amber-50 border-amber-300 text-amber-950'
+                  }`}
+                >
+                  {audioMode === 'verified-recording' &&
+                    (locale === 'id-ID'
+                      ? '✓ Memutar rekaman kata terverifikasi (Quran.com Word-by-Word / EveryAyah).'
+                      : '✓ Memainkan rakaman perkataan disahkan (Quran.com Word-by-Word / EveryAyah).')}
+                  {audioMode === 'loading' &&
+                    (locale === 'id-ID' ? 'Memuat rekaman audio...' : 'Memuatkan rakaman audio...')}
+                  {audioMode === 'synthetic-tts-fallback' &&
+                    (locale === 'id-ID'
+                      ? '⚠ Bantuan Sebutan Sintetis Peramban (TTS): Rekaman kata tidak dapat dimuat di jaringan ini. Suara sintetis bukan rekaman qari.'
+                      : '⚠ Bantuan Sebutan Sintetik Pelayar (TTS): Rakaman perkataan tidak dapat dimuatkan. Suara sintetik bukan rakaman qari.')}
+                  {audioMode === 'unavailable' &&
+                    (locale === 'id-ID'
+                      ? '⚠ Audio pelafalan tidak tersedia di lingkungan peramban ini.'
+                      : '⚠ Audio sebutan tidak tersedia dalam persekitaran pelayar ini.')}
+                </div>
+              )}
+
               <div
                 dir="rtl"
                 lang="ar"
@@ -336,8 +370,19 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
                 </div>
               )}
 
-              <div className="pt-3 border-t border-[#1C2724]/10 text-xs text-[#1C2724]/60">
-                {dict.common.verifiedSource}: {activeWord.sourceAttribution[locale]}
+              <div className="pt-3 border-t border-[#1C2724]/10 text-xs text-[#1C2724]/60 flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  {dict.common.verifiedSource}: {activeWord.sourceAttribution[locale]}
+                </span>
+                <a
+                  href={activeWord.sourceUrl || 'https://quran.com/1/1'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[#145A4A] font-semibold hover:underline"
+                >
+                  <span>{locale === 'id-ID' ? 'Rujukan Sumber' : 'Rujukan Sumber'}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
             </div>
           )}

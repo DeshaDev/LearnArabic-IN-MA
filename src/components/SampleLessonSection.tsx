@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { LocaleCode, WordToken } from '../types/learning';
+import { AudioPlaybackMode, LocaleCode, WordToken } from '../types/learning';
 import { LOCALES } from '../data/locales';
 import { LESSONS, WORDS } from '../data/curriculum';
 import { audioController } from '../utils/audioPlayer';
-import { Volume2, CheckCircle2, AlertCircle, ArrowRight, Bookmark } from 'lucide-react';
+import {
+  Volume2,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  Bookmark,
+  ExternalLink,
+} from 'lucide-react';
 
 interface SampleLessonSectionProps {
   locale: LocaleCode;
@@ -19,7 +26,8 @@ export const SampleLessonSection: React.FC<SampleLessonSectionProps> = ({
   onStartLesson,
 }) => {
   const dict = LOCALES[locale];
-  const sampleLesson = LESSONS[1]; // QS. Al-Fatihah 1:2 (Al-hamdu lillahi Rabbil-'alamin)
+  const sampleLesson =
+    LESSONS.find((l) => l.id === 'lesson-ayah-2') || LESSONS[0];
   const lessonWords: WordToken[] = sampleLesson.wordIds
     .map((id) => WORDS.find((w) => w.id === id)!)
     .filter(Boolean);
@@ -28,17 +36,33 @@ export const SampleLessonSection: React.FC<SampleLessonSectionProps> = ({
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showAdvancedGrammar, setShowAdvancedGrammar] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [audioMode, setAudioMode] = useState<AudioPlaybackMode>('idle');
 
   const activeWord =
     lessonWords.find((w) => w.id === activeWordId) || lessonWords[0];
 
-  const handlePlayAudio = (arabicText: string, freqs?: number[]) => {
+  const handlePlayPhrase = () => {
     audioController.speakArabic(
-      arabicText,
-      0.85,
-      freqs || [329.63, 349.23, 392.0],
+      sampleLesson.arabicPhrase,
+      1.0,
+      undefined,
       () => setIsPlaying(true),
-      () => setIsPlaying(false)
+      () => setIsPlaying(false),
+      sampleLesson.id,
+      sampleLesson.audioUrl,
+      (mode) => setAudioMode(mode)
+    );
+  };
+
+  const handlePlayWord = (word: WordToken) => {
+    audioController.playWordAudio(
+      word.id,
+      word.arabic,
+      1.0,
+      () => setIsPlaying(true),
+      () => setIsPlaying(false),
+      word.audioUrl,
+      (mode) => setAudioMode(mode)
     );
   };
 
@@ -82,7 +106,7 @@ export const SampleLessonSection: React.FC<SampleLessonSectionProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => handlePlayAudio(sampleLesson.arabicPhrase)}
+                  onClick={handlePlayPhrase}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#145A4A] bg-white hover:bg-[#DDEBE3] rounded-lg border border-[#1C2724]/10 transition-colors whitespace-nowrap shrink-0"
                 >
                   <Volume2 className="w-3.5 h-3.5" />
@@ -91,6 +115,34 @@ export const SampleLessonSection: React.FC<SampleLessonSectionProps> = ({
                   </span>
                 </button>
               </div>
+
+              {audioMode !== 'idle' && (
+                <div
+                  role="status"
+                  className={`mt-3 px-3 py-2 rounded-xl border text-xs ${
+                    audioMode === 'verified-recording'
+                      ? 'bg-[#DDEBE3]/60 border-[#145A4A]/25 text-[#145A4A]'
+                      : audioMode === 'loading'
+                      ? 'bg-white border-[#1C2724]/15 text-[#1C2724]/75'
+                      : 'bg-amber-50 border-amber-300 text-amber-950'
+                  }`}
+                >
+                  {audioMode === 'verified-recording' &&
+                    (locale === 'id-ID'
+                      ? '✓ Memutar rekaman tilawah terverifikasi (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).'
+                      : '✓ Memainkan rakaman tilawah disahkan (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).')}
+                  {audioMode === 'loading' &&
+                    (locale === 'id-ID' ? 'Memuat rekaman audio...' : 'Memuatkan rakaman audio...')}
+                  {audioMode === 'synthetic-tts-fallback' &&
+                    (locale === 'id-ID'
+                      ? '⚠ Bantuan Sebutan Sintetis Peramban (TTS): Rekaman tilawah qari tidak terjangkau di jaringan ini. Suara sintetis bukan tilawah Al-Qur’an.'
+                      : '⚠ Bantuan Sebutan Sintetik Pelayar (TTS): Rakaman tilawah qari tidak dapat dicapai. Suara sintetik bukan tilawah al-Quran.')}
+                  {audioMode === 'unavailable' &&
+                    (locale === 'id-ID'
+                      ? '⚠ Audio tilawah tidak dapat dimuat (jaringan dibatasi / offline) dan suara TTS Arab tidak tersedia di peramban ini.'
+                      : '⚠ Audio tilawah tidak dapat dimuatkan (rangkaian dihadkan / luar talian) dan suara TTS Arab tidak tersedia pada pelayar ini.')}
+                </div>
+              )}
 
               {/* Selectable Arabic Words */}
               <div
@@ -106,7 +158,7 @@ export const SampleLessonSection: React.FC<SampleLessonSectionProps> = ({
                       type="button"
                       onClick={() => {
                         setActiveWordId(word.id);
-                        handlePlayAudio(word.arabic, word.audioFreqHz);
+                        handlePlayWord(word);
                       }}
                       aria-pressed={selected}
                       className={`px-4 py-2.5 rounded-xl transition-all text-center ${
@@ -226,8 +278,19 @@ export const SampleLessonSection: React.FC<SampleLessonSectionProps> = ({
                   ? 'Tampilkan Catatan Nahwu Lanjutan (Opsional)'
                   : 'Paparkan Nota Nahu Lanjutan (Pilihan)'}
               </button>
-              <span className="text-xs text-[#1C2724]/55">
-                {activeWord.sourceAttribution[locale]}
+              <span className="text-xs text-[#1C2724]/55 inline-flex items-center gap-1.5">
+                <span>{activeWord.sourceAttribution[locale]}</span>
+                {sampleLesson.sourceUrl && (
+                  <a
+                    href={sampleLesson.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#145A4A] font-semibold hover:underline inline-flex items-center gap-0.5"
+                  >
+                    <span>(Quran.com)</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </span>
             </div>
 

@@ -271,7 +271,7 @@ export function computeSkillBreakdown(
       demonstratedCount: rootExploredCount,
       targetCount: Math.max(1, allWords.filter((w) => Boolean(w.rootFamily)).length),
       evidenceDescription: {
-        'id-ID': 'Kata dengan akar три-huruf (tsulatsi) yang telah ditelusuri.',
+        'id-ID': 'Kata dengan akar tiga huruf (tsulatsi) yang telah ditelusuri.',
         'ms-MY': 'Perkataan dengan akar tiga huruf yang telah diterokai.',
       },
     },

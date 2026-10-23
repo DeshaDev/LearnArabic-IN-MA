@@ -4,7 +4,17 @@ export type PathwayId = 'understand-quran' | 'quran-reading' | 'prayer-comprehen
 
 export type GrammaticalCategory = 'isim' | 'fiil' | 'harf' | 'phrase';
 
-export type EditorialStatus = 'verified-source' | 'educator-reviewed' | 'demo-preview';
+export type EditorialStatus =
+  | 'verified-source'
+  | 'curriculum-draft-pending-scholar-review'
+  | 'demo-preview';
+
+export type AudioPlaybackMode =
+  | 'idle'
+  | 'loading'
+  | 'verified-recording'
+  | 'synthetic-tts-fallback'
+  | 'unavailable';
 
 export type InfoPageId =
   | 'about'
@@ -49,6 +59,8 @@ export interface WordToken {
   pathwayId: PathwayId;
   verseRef: string;
   sourceAttribution: LocalizedText;
+  sourceUrl?: string;
+  audioUrl?: string;
   rootFamily?: RootFamily;
   audioFreqHz?: number[];
 }
@@ -115,6 +127,7 @@ export interface Lesson {
   transliterationPhrase: string;
   verifiedTranslation: LocalizedText;
   translationSource: LocalizedText;
+  sourceUrl?: string;
   recall: RecallQuestion;
   audioDurationSeconds: number;
   audioReciter: string;
@@ -168,6 +181,7 @@ export interface ReviewItem {
 }
 
 export interface AuthUser {
+  id?: string;
   name: string;
   email: string;
   country: 'ID' | 'MY';
@@ -175,25 +189,27 @@ export interface AuthUser {
 }
 
 export interface LearningAnalyticsEvent {
-  id: string;
-  type: 'lesson_start' | 'lesson_complete' | 'quiz_attempt' | 'review_complete' | 'bookmark_word';
-  targetId: string;
+  eventName: string;
   timestamp: number;
+  metadata?: string;
 }
 
 export interface TeacherReviewRequest {
   id: string;
   lessonId: string;
-  verseRef: string;
-  learnerNote: string;
-  focusArea: 'makhraj' | 'mad-waqaf' | 'ghunnah' | 'fluency';
-  status: 'queued-for-asatizah' | 'reviewed';
+  verseRef?: string;
+  focusArea?: 'makhraj' | 'mad-waqaf' | 'ghunnah' | 'fluency';
+  focusNote: string;
+  status: 'received-in-queue' | 'reviewed';
   submittedAt: number;
 }
 
 export interface LearnerProgress {
   locale: LocaleCode;
+  isDemoMode?: boolean;
   user?: AuthUser | null;
+  authToken?: string | null;
+  lastSyncedAt?: number | null;
   onboardingCompleted: boolean;
   diagnostic?: DiagnosticAnswers;
   recommendation?: PlacementRecommendation;
@@ -229,7 +245,9 @@ export interface EditorialArticle {
   summary: LocalizedText;
   readTimeMinutes: number;
   sourceAttribution: LocalizedText;
+  sourceUrl?: string;
   arabicExcerpt?: string;
   bodyParagraphs: LocalizedText[];
   relatedPathwayId: PathwayId;
 }
+

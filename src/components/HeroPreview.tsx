@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { LocaleCode, WordToken } from '../types/learning';
+import { AudioPlaybackMode, LocaleCode, WordToken } from '../types/learning';
 import { LOCALES } from '../data/locales';
 import { WORDS } from '../data/curriculum';
 import { audioController } from '../utils/audioPlayer';
-import { Volume2, Bookmark, ArrowRight, Check } from 'lucide-react';
+import { Volume2, Bookmark, ArrowRight, Check, ExternalLink } from 'lucide-react';
 
 interface HeroPreviewProps {
   locale: LocaleCode;
@@ -27,6 +27,7 @@ export const HeroPreview: React.FC<HeroPreviewProps> = ({
 
   const [selectedWordId, setSelectedWordId] = useState<string>('w-arrahmani');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioMode, setAudioMode] = useState<AudioPlaybackMode>('idle');
 
   const selectedWord: WordToken =
     previewWords.find((w) => w.id === selectedWordId) || previewWords[0];
@@ -34,20 +35,25 @@ export const HeroPreview: React.FC<HeroPreviewProps> = ({
   const handlePlayPhrase = () => {
     audioController.speakArabic(
       'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ',
-      0.85,
-      [293.66, 349.23, 392.0, 440.0],
+      1.0,
+      undefined,
       () => setIsPlaying(true),
-      () => setIsPlaying(false)
+      () => setIsPlaying(false),
+      'lesson-ayah-1',
+      'https://everyayah.com/data/Alafasy_128kbps/001001.mp3',
+      (mode) => setAudioMode(mode)
     );
   };
 
   const handlePlayWord = (word: WordToken) => {
-    audioController.speakArabic(
+    audioController.playWordAudio(
+      word.id,
       word.arabic,
-      0.8,
-      word.audioFreqHz || [349.23, 392.0],
+      1.0,
       () => setIsPlaying(true),
-      () => setIsPlaying(false)
+      () => setIsPlaying(false),
+      word.audioUrl,
+      (mode) => setAudioMode(mode)
     );
   };
 
@@ -80,6 +86,34 @@ export const HeroPreview: React.FC<HeroPreviewProps> = ({
         <p className="text-xs text-[#1C2724]/70 mt-3 mb-2">
           {dict.hero.previewInstruction}
         </p>
+
+        {audioMode !== 'idle' && (
+          <div
+            role="status"
+            className={`mb-2 px-3 py-2 rounded-xl border text-[11px] leading-relaxed ${
+              audioMode === 'verified-recording'
+                ? 'bg-[#DDEBE3]/60 border-[#145A4A]/25 text-[#145A4A]'
+                : audioMode === 'loading'
+                ? 'bg-[#F7F5EF] border-[#1C2724]/15 text-[#1C2724]/75'
+                : 'bg-amber-50 border-amber-300 text-amber-950'
+            }`}
+          >
+            {audioMode === 'verified-recording' &&
+              (locale === 'id-ID'
+                ? '✓ Memutar rekaman tilawah terverifikasi (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).'
+                : '✓ Memainkan rakaman tilawah disahkan (Syaikh Mishary Rashid Alafasy — EveryAyah / Quran.com).')}
+            {audioMode === 'loading' &&
+              (locale === 'id-ID' ? 'Memuat rekaman audio...' : 'Memuatkan rakaman audio...')}
+            {audioMode === 'synthetic-tts-fallback' &&
+              (locale === 'id-ID'
+                ? '⚠ Bantuan Sebutan Sintetis Peramban (TTS): Rekaman tilawah qari tidak terjangkau di jaringan ini. Suara sintetis bukan tilawah Al-Qur’an.'
+                : '⚠ Bantuan Sebutan Sintetik Pelayar (TTS): Rakaman tilawah qari tidak dapat dicapai. Suara sintetik bukan tilawah al-Quran.')}
+            {audioMode === 'unavailable' &&
+              (locale === 'id-ID'
+                ? '⚠ Audio tilawah tidak dapat dimuat (jaringan dibatasi / offline) dan suara TTS Arab tidak tersedia di peramban ini.'
+                : '⚠ Audio tilawah tidak dapat dimuatkan (rangkaian dihadkan / luar talian) dan suara TTS Arab tidak tersedia pada pelayar ini.')}
+          </div>
+        )}
 
         {/* Interactive RTL Arabic Word Tokens */}
         <div
@@ -183,8 +217,17 @@ export const HeroPreview: React.FC<HeroPreviewProps> = ({
                 </span>{' '}
                 <span>({selectedWord.rootFamily.coreConcept[locale]})</span>
               </div>
-              <span className="text-[#1C2724]/55">
-                {selectedWord.sourceAttribution[locale]}
+              <span className="text-[#1C2724]/55 inline-flex items-center gap-1.5">
+                <span>{selectedWord.sourceAttribution[locale]}</span>
+                <a
+                  href={selectedWord.sourceUrl || 'https://quran.com/1/1'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#145A4A] font-semibold hover:underline inline-flex items-center gap-0.5"
+                >
+                  <span>(Quran.com)</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </span>
             </div>
           )}

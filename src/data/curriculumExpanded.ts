@@ -31,6 +31,7 @@ export const EXTRA_WORDS: WordToken[] = [
       'id-ID': 'Terjemahan & Tafsir Ringkas Kemenag RI (2019)',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman JAKIM',
     },
+    sourceUrl: 'https://quran.com/1/4',
     rootFamily: {
       rootArabic: 'م - ل - ك',
       rootLatin: 'm-l-k',
@@ -71,7 +72,7 @@ export const EXTRA_WORDS: WordToken[] = [
     },
     lexicalNote: {
       'id-ID':
-        'Kata دِين dalam bahasa Arab memiliki dua makna utama sesuai konteks: (1) Pembalasan dan perhitungan amal (seperti dalam يَوْمِ الدِّينِ), dan (2) Agama/ketaatan (seperti dalamQS. Al-Kafirun 109:6).',
+        'Kata دِين dalam bahasa Arab memiliki dua makna utama sesuai konteks: (1) Pembalasan dan perhitungan amal (seperti dalam يَوْمِ الدِّينِ), dan (2) Agama/ketaatan (seperti dalam QS. Al-Kafirun 109:6).',
       'ms-MY':
         'Perkataan دِين dalam bahasa Arab mempunyai dua makna utama mengikut konteks: (1) Pembalasan dan perhitungan amal (seperti dalam يَوْمِ الدِّينِ), dan (2) Agama/ketaatan (seperti dalam QS. al-Kafirun 109:6).',
     },
@@ -91,6 +92,7 @@ export const EXTRA_WORDS: WordToken[] = [
       'id-ID': 'Tafsir Ringkas Kemenag RI & Al-Muyassar',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman JAKIM & Al-Muyassar',
     },
+    sourceUrl: 'https://quran.com/1/4',
     rootFamily: {
       rootArabic: 'د - ي - ن',
       rootLatin: 'd-y-n',
@@ -144,6 +146,7 @@ export const EXTRA_WORDS: WordToken[] = [
       'id-ID': 'Terjemahan & Tafsir Ringkas Kemenag RI',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman JAKIM',
     },
+    sourceUrl: 'https://quran.com/112/1',
     rootFamily: {
       rootArabic: 'و - ح - د',
       rootLatin: 'w-h-d',
@@ -197,6 +200,7 @@ export const EXTRA_WORDS: WordToken[] = [
       'id-ID': 'Terjemahan Kemenag RI (2019)',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman JAKIM',
     },
+    sourceUrl: 'https://quran.com/112/2',
     audioFreqHz: [349.23, 440.0],
   },
   {
@@ -229,6 +233,7 @@ export const EXTRA_WORDS: WordToken[] = [
       'id-ID': 'Shahih Muslim No. 772 (Bacaan Rukuk & Sujud)',
       'ms-MY': 'Sahih Muslim No. 772 (Bacaan Rukuk & Sujud)',
     },
+    sourceUrl: 'https://sunnah.com/muslim:772',
     rootFamily: {
       rootArabic: 'س - ب - ح',
       rootLatin: 's-b-h',
@@ -282,6 +287,7 @@ export const EXTRA_WORDS: WordToken[] = [
       'id-ID': 'Terjemahan & Tafsir Ringkas Kemenag RI',
       'ms-MY': 'Tafsir Pimpinan Ar-Rahman JAKIM',
     },
+    sourceUrl: 'https://quran.com/103/1',
     audioFreqHz: [293.66, 392.0],
   },
 ];
@@ -337,8 +343,10 @@ export const EXTRA_LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 6,
-    audioReciter: 'Audio Panduan Pelafalan Terverifikasi',
-    audioLicense: 'Referensi Pendidikan Terbuka',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/1/3-4',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/001003.mp3',
     wordIds: ['w-arrahmani', 'w-arrahimi', 'w-maliki', 'w-addini'],
     structureSummary: {
       'id-ID': 'Frasa مَـٰلِكِ يَوْمِ ٱلدِّينِ adalah rangkaian kata sandaran (idhafah): Pemilik → Hari → Pembalasan.',
@@ -506,8 +514,10 @@ export const EXTRA_LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 6,
-    audioReciter: 'Audio Panduan Pelafalan Terverifikasi',
-    audioLicense: 'Referensi Pendidikan Terbuka',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/112/1-2',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/112001.mp3',
     wordIds: ['w-allahi', 'w-ahad', 'w-ashshamad'],
     structureSummary: {
       'id-ID': 'Dibuka dengan kata perintah قُلْ (Katakanlah), diikuti kata ganti هُوَ (Dia), lalu dua pernyataan tauhid: ٱللَّهُ أَحَدٌ dan ٱللَّهُ ٱلصَّمَدُ.',
@@ -703,8 +713,10 @@ export const EXTRA_LESSONS: Lesson[] = [
       },
     },
     audioDurationSeconds: 7,
-    audioReciter: 'Audio Panduan Pelafalan Terverifikasi',
-    audioLicense: 'Referensi Pendidikan Terbuka',
+    audioReciter: 'Syaikh Mishary Rashid Alafasy (EveryAyah / Quran.com)',
+    audioLicense: 'EveryAyah Open Quran Audio Archive (Non-Commercial Educational Use)',
+    sourceUrl: 'https://quran.com/103/1-3',
+    audioUrl: 'https://everyayah.com/data/Alafasy_128kbps/103001.mp3',
     wordIds: ['w-alasr', 'w-alkitabu'],
     structureSummary: {
       'id-ID': 'Tersusun dari tiga bagian logis: (1) Sumpah demi waktu (وَٱلْعَصْرِ), (2) Pernyataan tegas (إِنَّ ٱلْإِنسَـٰنَ لَفِى خُسْرٍ), dan (3) Pengecualian penyelamat (إِلَّا ٱلَّذِينَ ءَامَنُوا۟...).',
@@ -886,13 +898,14 @@ export const EXTRA_LESSONS: Lesson[] = [
       ],
       correctIndex: 0,
       explanation: {
-        'id-ID': 'Benar! Akhiran huruf Ya’ (ـي / ـيَ) pada kata benda berarti "-ku" (रَبِّي = Tuhanku).',
+        'id-ID': 'Benar! Akhiran huruf Ya’ (ـي / ـيَ) pada kata benda berarti "-ku" (رَبِّي = Tuhanku).',
         'ms-MY': 'Betul! Akhiran huruf Ya’ (ـي / ـيَ) pada kata nama bermaksud "-ku" (رَبِّي = Tuhanku).',
       },
     },
     audioDurationSeconds: 6,
-    audioReciter: 'Audio Panduan Zikir Salat Terverifikasi',
-    audioLicense: 'Sumber Hadis: Shahih Muslim No. 772',
+    audioReciter: 'Bantuan Sebutan Sintetis Peramban (Teks Hadis — Bukan Rekaman Qari)',
+    audioLicense: 'Sumber Teks Hadis: Shahih Muslim No. 772 (Sunnah.com)',
+    sourceUrl: 'https://sunnah.com/muslim:772',
     wordIds: ['w-subhana', 'w-rabbi', 'w-alhamdu'],
     structureSummary: {
       'id-ID': 'Kedua zikir ini memiliki pola identik: سُبْحَانَ (Maha Suci) + رَبِّيَ (Tuhanku) + Sifat Kesempurnaan (ٱلْعَظِيمِ saat rukuk, ٱلْأَعْلَىٰ saat sujud).',

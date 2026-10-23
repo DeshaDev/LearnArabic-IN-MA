@@ -208,7 +208,7 @@ export const LOCALES: Record<LocaleCode, LocaleDictionary> = {
           tag: 'Huruf Hijaiyah · Tajwid · Bacaan',
           title: 'Perbaiki Bacaan & Tajwid Al-Qur’an',
           description:
-            'Dari pengenalan huruf dan harakat, penyambungan kata, makharijul huruf, hingga hukum tajwid dan tanda waqaf dengan audio terverifikasi.',
+            'Dari pengenalan huruf dan harakat, penyambungan kata, makharijul huruf, hingga pengantar hukum tajwid dan tanda waqaf dengan rujukan tilawah terstandar.',
           outcome: 'Hasil belajar: Membaca ayat dengan harakat dan kaidah tajwid dasar yang lebih tertib.',
           cta: 'Mulai Jalur Bacaan',
         },
@@ -468,7 +468,7 @@ export const LOCALES: Record<LocaleCode, LocaleDictionary> = {
           tag: 'Huruf Hijaiyah · Tajwid · Bacaan',
           title: 'Perbaiki Bacaan & Tajwid al-Quran',
           description:
-            'Daripada pengenalan huruf dan baris bacaan, penyambungan perkataan, makhraj huruf hinggalah hukum tajwid serta tanda waqaf dengan audio disahkan.',
+            'Daripada pengenalan huruf dan baris bacaan, penyambungan perkataan, makhraj huruf hinggalah pengenalan hukum tajwid serta tanda waqaf dengan rakaman tilawah rujukan.',
           outcome: 'Hasil pembelajaran: Membaca ayat al-Quran dengan baris dan hukum tajwid asas yang lebih teratur.',
           cta: 'Mulakan Laluan Bacaan',
         },

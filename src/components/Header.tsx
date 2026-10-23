@@ -1,7 +1,17 @@
 import React from 'react';
 import { LocaleCode } from '../types/learning';
 import { LOCALES } from '../data/locales';
-import { Globe, BookOpen, Compass, Layers, CheckCircle2, BarChart3, FileText, Settings } from 'lucide-react';
+import {
+  Globe,
+  BookOpen,
+  Compass,
+  Layers,
+  CheckCircle2,
+  BarChart3,
+  FileText,
+  Settings,
+  Sparkles,
+} from 'lucide-react';
 
 export type AppScreen =
   | 'home'
@@ -23,6 +33,8 @@ interface HeaderProps {
   onOpenAuth: () => void;
   userName?: string;
   dueReviewCount: number;
+  isDemoMode?: boolean;
+  onToggleDemoMode?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -34,6 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   userName,
   dueReviewCount,
+  isDemoMode,
+  onToggleDemoMode,
 }) => {
   const dict = LOCALES[locale];
 
@@ -127,12 +141,19 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             className="hover:text-[#145A4A] transition-colors whitespace-nowrap shrink-0 py-1"
           >
-            {userName ? userName : dict.nav.signIn}
+            {userName ? `${userName} (Tersinkron)` : dict.nav.signIn}
           </a>
         </nav>
 
-        {/* Zone 3: 1 primary action */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Zone 3: Account & Primary Action */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="md:hidden px-3 py-2 text-xs font-semibold text-[#145A4A] bg-white border border-[#145A4A]/25 rounded-lg hover:bg-[#DDEBE3] transition-colors whitespace-nowrap shrink-0"
+          >
+            {userName ? userName : dict.nav.signIn}
+          </button>
           <button
             type="button"
             onClick={onOpenOnboarding}
@@ -262,37 +283,63 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Explicit Language / Locale Selector for Indonesia & Malaysia */}
-          <div
-            role="group"
-            aria-label="Language Selector"
-            className="flex items-center gap-1 bg-white/90 p-0.5 rounded-lg border border-[#1C2724]/10 shrink-0"
-          >
-            <Globe className="w-3.5 h-3.5 text-[#145A4A] ml-2 mr-1" />
-            <button
-              type="button"
-              onClick={() => onLocaleChange('id-ID')}
-              aria-pressed={locale === 'id-ID'}
-              className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                locale === 'id-ID'
-                  ? 'bg-[#145A4A] text-white font-semibold'
-                  : 'text-[#1C2724]/75 hover:text-[#1C2724]'
-              }`}
+          {/* Explicit Language / Locale Selector & Demo Mode Toggle */}
+          <div className="flex flex-wrap items-center gap-2">
+            {onToggleDemoMode && (
+              <button
+                type="button"
+                onClick={onToggleDemoMode}
+                aria-pressed={Boolean(isDemoMode)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
+                  isDemoMode
+                    ? 'bg-amber-100 text-amber-950 border-amber-400'
+                    : 'bg-white/90 text-[#1C2724]/75 border-[#1C2724]/10 hover:text-[#145A4A]'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#D8A75B]" />
+                <span>
+                  {isDemoMode
+                    ? locale === 'id-ID'
+                      ? 'Mode Demo Aktif (Reset ke Kosong)'
+                      : 'Mod Demo Aktif (Reset ke Kosong)'
+                    : locale === 'id-ID'
+                    ? 'Mode Data Demo'
+                    : 'Mod Data Demo'}
+                </span>
+              </button>
+            )}
+
+            <div
+              role="group"
+              aria-label="Language Selector"
+              className="flex items-center gap-1 bg-white/90 p-0.5 rounded-lg border border-[#1C2724]/10 shrink-0"
             >
-              Indonesia (ID)
-            </button>
-            <button
-              type="button"
-              onClick={() => onLocaleChange('ms-MY')}
-              aria-pressed={locale === 'ms-MY'}
-              className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                locale === 'ms-MY'
-                  ? 'bg-[#145A4A] text-white font-semibold'
-                  : 'text-[#1C2724]/75 hover:text-[#1C2724]'
-              }`}
-            >
-              Malaysia (MY)
-            </button>
+              <Globe className="w-3.5 h-3.5 text-[#145A4A] ml-2 mr-1" />
+              <button
+                type="button"
+                onClick={() => onLocaleChange('id-ID')}
+                aria-pressed={locale === 'id-ID'}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                  locale === 'id-ID'
+                    ? 'bg-[#145A4A] text-white font-semibold'
+                    : 'text-[#1C2724]/75 hover:text-[#1C2724]'
+                }`}
+              >
+                Indonesia (ID)
+              </button>
+              <button
+                type="button"
+                onClick={() => onLocaleChange('ms-MY')}
+                aria-pressed={locale === 'ms-MY'}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                  locale === 'ms-MY'
+                    ? 'bg-[#145A4A] text-white font-semibold'
+                    : 'text-[#1C2724]/75 hover:text-[#1C2724]'
+                }`}
+              >
+                Malaysia (MY)
+              </button>
+            </div>
           </div>
         </div>
       </div>
