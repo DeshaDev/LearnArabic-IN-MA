@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-ivory: #F7F5EF;
+    --primary-forest: #145A4A;
+    --surface-mint: #DDEBE3;
+    --accent-gold: #D8A75B;
+    --text-ink: #1C2724;
+    --surface-white: #FFFFFF;
+  }
+
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: 'Plus Jakarta Sans', 'Noto Naskh Arabic', 'Amiri', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    background-color: #F7F5EF;
+    color: #1C2724;
+    overflow-x: hidden;
+  }
+}
+
+.font-arabic {
+  font-family: 'Amiri', 'Noto Naskh Arabic', serif;
+  line-height: 2.1;
+  letter-spacing: 0;
+}
+
+.font-arabic-naskh {
+  font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+  line-height: 2.0;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

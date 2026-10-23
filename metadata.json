@@ -1,0 +1,6 @@
+{
+  "name": "Faham Ayat — Quranic Arabic Learning Platform",
+  "description": "Platform pembelajaran bahasa Arab Al-Qur'an dan bacaan salat yang terstruktur untuk Muslim di Indonesia dan Malaysia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
