@@ -16,6 +16,7 @@ import {
 export type AppScreen =
   | 'home'
   | 'dashboard'
+  | 'world'
   | 'course-map'
   | 'lesson'
   | 'vocabulary'
@@ -99,6 +100,20 @@ export const Header: React.FC<HeaderProps> = ({
             {dict.nav.home}
           </a>
           <a
+            href={`${dict.urlPrefix}#dunia-makna`}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate('world');
+            }}
+            className={`hover:text-[#145A4A] transition-colors whitespace-nowrap shrink-0 py-1 ${
+              activeScreen === 'world'
+                ? 'text-[#145A4A] underline underline-offset-8 decoration-2'
+                : ''
+            }`}
+          >
+            Dunia Makna
+          </a>
+          <a
             href={`${dict.urlPrefix}#jalur`}
             onClick={(e) => {
               e.preventDefault();
@@ -118,20 +133,6 @@ export const Header: React.FC<HeaderProps> = ({
             className="hover:text-[#145A4A] transition-colors whitespace-nowrap shrink-0 py-1"
           >
             {dict.nav.method}
-          </a>
-          <a
-            href={`${dict.urlPrefix}#materi`}
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigate('resources');
-            }}
-            className={`hover:text-[#145A4A] transition-colors whitespace-nowrap shrink-0 py-1 ${
-              activeScreen === 'resources'
-                ? 'text-[#145A4A] underline underline-offset-8 decoration-2'
-                : ''
-            }`}
-          >
-            {dict.nav.resources}
           </a>
           <a
             href={`${dict.urlPrefix}#masuk`}
@@ -183,6 +184,18 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               {dict.nav.home}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('world')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                activeScreen === 'world'
+                  ? 'bg-white text-[#145A4A] shadow-xs font-semibold'
+                  : 'text-[#1C2724]/75 hover:text-[#1C2724]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#145A4A]" />
+              <span>Dunia Makna</span>
             </button>
             <button
               type="button"

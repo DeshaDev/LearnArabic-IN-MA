@@ -9,6 +9,8 @@ import {
   PathwayId,
   PlacementRecommendation,
   TeacherReviewRequest,
+  WorldLocationId,
+  WorldMistakeEntry,
 } from './types/learning';
 import { LOCALES } from './data/locales';
 import { LESSONS } from './data/curriculum';
@@ -16,6 +18,11 @@ import {
   calculateNextReview,
   getDueReviewItems,
 } from './utils/learningEngine';
+import {
+  createDemoWorldProgress,
+  createInitialWorldProgress,
+  recordGameAttemptInProgress,
+} from './utils/worldEngine';
 import { Header, AppScreen } from './components/Header';
 import { Homepage } from './components/Homepage';
 import { OnboardingModal } from './components/OnboardingModal';
@@ -28,6 +35,7 @@ import { ProgressMasteryView } from './components/ProgressMasteryView';
 import { ResourcesView } from './components/ResourcesView';
 import { SettingsView } from './components/SettingsView';
 import { InfoPagesModal, AuthModal } from './components/InfoPagesModal';
+import { WorldOfMeaningView } from './components/world/WorldOfMeaningView';
 
 const STORAGE_KEY = 'faham_ayat_learner_progress_v2';
 
@@ -60,12 +68,14 @@ export function getDefaultProgress(locale: LocaleCode): LearnerProgress {
     arabicFontScale: 'large',
     remindersEnabled: false,
     ramadanModeEnabled: false,
+    reducedMotion: false,
     isDemoMode: false,
     user: null,
     authToken: null,
     lastSyncedAt: null,
     teacherReviewRequests: [],
     analyticsEvents: [],
+    worldProgress: createInitialWorldProgress(),
   };
 }
 
@@ -77,7 +87,15 @@ export function getDemoProgress(locale: LocaleCode): LearnerProgress {
     activePathway: 'understand-quran',
     completedLessonIds: ['lesson-ayah-1'],
     bookmarkedWordIds: ['w-arrahmani', 'w-alhamdu'],
-    learnedWordIds: ['w-bismi', 'w-allahi', 'w-arrahmani', 'w-arrahimi'],
+    learnedWordIds: [
+      'w-bismi',
+      'w-allahi',
+      'w-arrahmani',
+      'w-arrahimi',
+      'w-world-amam',
+      'w-world-yamin',
+      'w-world-tahta',
+    ],
     reviewQueue: {
       'w-bismi': {
         wordId: 'w-bismi',
@@ -110,12 +128,14 @@ export function getDemoProgress(locale: LocaleCode): LearnerProgress {
     arabicFontScale: 'large',
     remindersEnabled: false,
     ramadanModeEnabled: false,
+    reducedMotion: false,
     isDemoMode: true,
     user: null,
     authToken: null,
     lastSyncedAt: null,
     teacherReviewRequests: [],
     analyticsEvents: [],
+    worldProgress: createDemoWorldProgress(now),
   };
 }
 
@@ -203,7 +223,9 @@ export function App() {
               arabicFontScale: progress.arabicFontScale,
               remindersEnabled: progress.remindersEnabled,
               ramadanModeEnabled: progress.ramadanModeEnabled,
+              reducedMotion: progress.reducedMotion,
               teacherReviewRequests: progress.teacherReviewRequests,
+              worldProgress: progress.worldProgress,
             },
           }),
         });
@@ -234,6 +256,7 @@ export function App() {
     progress.reflections,
     progress.dailyGoalMinutes,
     progress.activePathway,
+    progress.worldProgress,
   ]);
 
   // Sync document lang, title, meta description, canonical, and locale URL (/id/ or /my/)
@@ -501,6 +524,37 @@ export function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleRecordGameAttempt = (
+    locationId: WorldLocationId,
+    levelNumber: number,
+    wordIds: string[],
+    mistakesCount: number,
+    arabicPrompt: string,
+    didPass: boolean,
+    diagnosticCategory?: WorldMistakeEntry['diagnosticCategory'],
+    feedbackText?: string
+  ) => {
+    const now = Date.now();
+    setProgress((prev) =>
+      recordGameAttemptInProgress(
+        prev,
+        {
+          locationId,
+          levelNumber,
+          wordIds,
+          mistakesCount,
+          ArabicPrompt: arabicPrompt,
+          diagnosticCategory,
+          mistakeFeedback: feedbackText
+            ? { 'id-ID': feedbackText, 'ms-MY': feedbackText }
+            : undefined,
+        },
+        didPass,
+        now
+      )
+    );
+  };
+
   const dueReviewCount = getDueReviewItems(progress.reviewQueue, Date.now()).length;
   const activeLesson =
     LESSONS.find((l) => l.id === activeLessonId) || LESSONS[0];
@@ -546,6 +600,22 @@ export function App() {
             }
             onOpenArticle={handleOpenArticle}
             onOpenInfoPage={(page) => setActiveInfoPage(page)}
+          />
+        )}
+
+        {activeScreen === 'world' && (
+          <WorldOfMeaningView
+            locale={progress.locale}
+            progress={progress}
+            onRecordGameAttempt={handleRecordGameAttempt}
+            onUpdateSettings={(partial) =>
+              setProgress((prev) => ({ ...prev, ...partial }))
+            }
+            onNavigate={(screen) => {
+              setActiveScreen(screen);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onStartLesson={handleStartLesson}
           />
         )}
 

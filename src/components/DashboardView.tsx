@@ -233,6 +233,49 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
+      {/* World of Meaning Quick Entry Card */}
+      <div className="bg-white rounded-2xl p-6 sm:p-7 border border-[#145A4A]/25 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="text-xs font-semibold text-[#145A4A] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#D8A75B]" />
+            <span>
+              {locale === 'id-ID'
+                ? 'Dunia Makna · 7 Lingkungan Permainan Bahasa Arab & Al-Qur’an'
+                : 'Dunia Makna · 7 Persekitaran Permainan Bahasa Arab & al-Quran'}
+            </span>
+          </div>
+          <h2 className="text-lg sm:text-xl font-bold text-[#1C2724]">
+            {locale === 'id-ID'
+              ? 'Latih arah (يَمِين / يَسَار), posisi ruang (فَوْق / تَحْت), transaksi pasar, dan akar kata secara interaktif'
+              : 'Latih arah (يَمِين / يَسَار), kedudukan ruang (فَوْق / تَحْت), urus niaga pasar dan akar perkataan secara interaktif'}
+          </h2>
+          <p className="text-xs sm:text-sm text-[#1C2724]/75 tabular-nums">
+            {locale === 'id-ID'
+              ? `Kemajuan Dunia Makna: ${
+                  Object.keys(progress.worldProgress?.completedLevels || {}).length
+                } tahap selesai · ${progress.worldProgress?.xp || 0} XP · ${
+                  progress.worldProgress?.totalStars || 0
+                } Bintang`
+              : `Kemajuan Dunia Makna: ${
+                  Object.keys(progress.worldProgress?.completedLevels || {}).length
+                } tahap selesai · ${progress.worldProgress?.xp || 0} XP · ${
+                  progress.worldProgress?.totalStars || 0
+                } Bintang`}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onNavigate('world')}
+          className="px-5 py-3 rounded-xl bg-[#145A4A] text-white text-xs sm:text-sm font-semibold hover:bg-[#10483B] inline-flex items-center gap-2 whitespace-nowrap shrink-0 self-start md:self-center"
+        >
+          <Compass className="w-4 h-4" />
+          <span>
+            {locale === 'id-ID' ? 'Buka Peta Dunia Makna' : 'Buka Peta Dunia Makna'}
+          </span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+
       {/* Bottom Grid: Learned Words & Saved Bookmarks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recently Learned Words */}

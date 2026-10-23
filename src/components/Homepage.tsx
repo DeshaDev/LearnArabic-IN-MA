@@ -101,6 +101,18 @@ export const Homepage: React.FC<HomepageProps> = ({
                 </button>
                 <button
                   type="button"
+                  onClick={() => onNavigate('world')}
+                  className="px-5 py-3 text-sm font-semibold text-[#145A4A] bg-[#DDEBE3] hover:bg-[#cde0d5] rounded-xl transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0"
+                >
+                  <Compass className="w-4 h-4" />
+                  <span>
+                    {locale === 'id-ID'
+                      ? 'Masuki Dunia Makna (7 Game Interaktif)'
+                      : 'Masuki Dunia Makna (7 Permainan Interaktif)'}
+                  </span>
+                </button>
+                <button
+                  type="button"
                   onClick={scrollToSample}
                   className="px-5 py-3 text-sm font-semibold text-[#1C2724] bg-white hover:bg-[#DDEBE3]/60 border border-[#1C2724]/15 rounded-xl transition-colors whitespace-nowrap shrink-0"
                 >

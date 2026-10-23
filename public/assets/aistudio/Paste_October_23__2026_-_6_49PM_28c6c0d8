@@ -1,0 +1,1187 @@
+# MASTER PRODUCT & IMPLEMENTATION PROMPT
+
+# FAHAM AYAT — THE WORLD OF MEANING
+
+## Transform an Existing Arabic & Quran Learning Platform into an Innovative Gamified Learning Experience
+
+You are a senior product designer, educational game designer, Arabic language learning specialist, UX/UI engineer, and full-stack developer.
+
+Do NOT start from scratch. Do NOT replace the existing application with a generic website template. Inspect the current codebase, understand its architecture, preserve the strongest working features, and implement a coherent game-based learning experience within the existing product.
+
+The existing product serves learners in Indonesia and Malaysia who want to learn Arabic, understand Quranic Arabic, improve Quran reading, and understand prayer recitations.
+
+The central objective is to differentiate the platform from conventional Arabic-learning websites, repetitive quizzes, and ordinary Quran applications.
+
+Create a connected educational game world in which learners acquire Arabic by moving through environments, accomplishing tasks, interpreting visual scenes, solving problems, and understanding meaningful language in context.
+
+The product must be genuinely playable, educationally coherent, visually distinctive, localized, accessible, and technically maintainable.
+
+Do not merely generate a product plan, screenshots, or nonfunctional mockups. Implement the application.
+
+---
+
+# 1. PRODUCT VISION
+
+## Working concept: The World of Meaning
+
+Create a persistent educational world that connects Arabic learning, gameplay, and the learner's growing vocabulary.
+
+The learner should feel that Arabic is a tool for accomplishing interesting things rather than a school subject consisting entirely of memorization and multiple-choice questions.
+
+The experience should communicate:
+
+"I am not merely studying Arabic. I am learning to understand and use Arabic to explore a world."
+
+Build a connected world containing locations such as:
+
+- A neighborhood with roads, buildings, doors, and landmarks.
+- A market with products, baskets, quantities, colors, and requests.
+- Interactive rooms and scenes containing objects and characters.
+- A puzzle bridge where language constructs the path forward.
+- A story world driven by Arabic instructions and conversations.
+- A language investigation area exploring verified Arabic word relationships.
+- A carefully designed Quranic Arabic learning space.
+
+These locations must share a common vocabulary system, learning history, progression model, and skill map.
+
+They must not feel like unrelated games collected in a menu.
+
+## Primary audiences
+
+Design for non-Arabic-speaking Muslim learners in Indonesia and Malaysia, including:
+
+1. Learners who can read the Quran but do not understand much of its Arabic.
+2. Beginners who need to develop foundational Arabic skills.
+3. Learners who want practical Arabic comprehension.
+4. Learners who want to understand prayer recitations and selected Quranic passages.
+
+Build a welcoming experience for adults and older teenagers. Avoid a childish visual identity even when using colorful, engaging game mechanics.
+
+The product should be approachable, calm, rewarding, and intellectually satisfying.
+
+---
+
+# 2. START WITH A REPOSITORY AUDIT
+
+Before changing the code:
+
+1. Inspect the existing routes, components, styling system, package configuration, learning data, localization implementation, and current state management.
+2. Identify the existing design system and retain useful colors, typography, branding, and components.
+3. Identify the current implementations of onboarding, Ayat Explorer, course maps, the vocabulary library, review scheduling, the dashboard, and progress tracking.
+4. Identify components that are simulations rather than real integrations.
+5. Run the existing application and baseline build or tests where the environment permits.
+6. Determine how the existing application stores learner progress and whether a real backend is connected.
+
+Then implement the new features incrementally within the existing architecture.
+
+Do not create a second, disconnected application or duplicate an existing lesson engine unnecessarily.
+
+Do not silently discard useful functionality already present in the repository.
+
+---
+
+# 3. THE CORE DESIGN PRINCIPLE
+
+Every game must answer three questions:
+
+1. What Arabic skill does the learner practice?
+2. What meaningful action becomes possible because the learner understands the language?
+3. How does the game determine whether the learner actually understood the language?
+
+For example, a direction game is not successful merely because the learner presses the correct arrow.
+
+It should gradually require the learner to understand Arabic direction words, follow multi-step instructions, connect commands to locations, and transfer that knowledge to unfamiliar scenes.
+
+Do not build a collection of games that only reward rapid clicking.
+
+Build games that teach comprehension and gradually reduce dependence on translation.
+
+---
+
+# 4. BUILD A CONNECTED EDUCATIONAL WORLD
+
+Create a polished world map or hub through which users access available learning environments.
+
+The world should have clear visual geography and a coherent art direction.
+
+Suggested locations:
+
+## A. The Neighborhood — Arabic Street Explorer
+
+Focus:
+
+- Direction words.
+- Spatial relationships.
+- Imperatives.
+- Common locations.
+- Multi-step listening comprehension.
+
+## B. The Market — Interactive Shopping Missions
+
+Focus:
+
+- Everyday vocabulary.
+- Nouns.
+- Colors and adjectives.
+- Numbers and quantities.
+- Singular and plural forms.
+- Understanding complete requests.
+
+## C. The Scene Lab — Understand What You See
+
+Focus:
+
+- Spatial prepositions.
+- Action verbs.
+- Descriptions.
+- Objects and relationships.
+- Listening comprehension.
+
+## D. The Sentence Bridge — Build the Correct Sentence
+
+Focus:
+
+- Word order.
+- Pronouns.
+- Verbs and nouns.
+- Prepositions.
+- Basic sentence structures.
+- Reading comprehension.
+
+## E. The Lost Message — Story-Driven Arabic
+
+Focus:
+
+- Dialogues.
+- Short instructions.
+- Everyday questions and answers.
+- Sequential comprehension.
+- Transfer of vocabulary across contexts.
+
+## F. The Word Detective — Arabic Word Families
+
+Focus:
+
+- Verified Arabic roots and morphological relationships.
+- Related words and forms.
+- Context-dependent meanings.
+- Vocabulary connections.
+
+## G. The Quranic Discovery Room
+
+Focus:
+
+- Verified Quranic vocabulary.
+- Word meaning in context.
+- Basic grammatical relationships.
+- Understanding selected phrases.
+- Learning from trusted, clearly attributed sources.
+
+The Quranic learning environment must use a distinct, calm, respectful design language. Do not apply arcade mechanics indiscriminately to Quranic text.
+
+---
+
+# 5. GAME ONE — ARABIC STREET EXPLORER
+
+This is the flagship game and the first implementation priority.
+
+## Game concept
+
+Create a real, playable, top-down 2D neighborhood.
+
+The player controls a character who must reach destinations by understanding Arabic commands.
+
+The environment includes:
+
+- Streets and intersections.
+- Buildings and doors.
+- Shops and landmarks.
+- Trees, benches, pathways, and other visual objects.
+- Accessible routes and obstacles.
+- Several interactive destinations.
+
+Use a polished casual-game visual style with original, coherent artwork or carefully constructed vector assets.
+
+Do not use a static illustration that merely looks like a game.
+
+The character must move in response to real player input.
+
+## Controls
+
+Support:
+
+- On-screen directional controls.
+- Keyboard arrows and WASD when appropriate.
+- Touch-friendly controls on phones and tablets.
+- Optional tap-to-move or route selection where practical.
+
+The game must remain playable on narrow mobile screens.
+
+## Mission sequence
+
+### Level 1 — Directions
+
+Teach:
+
+- يَمِين
+- يَسَار
+- أَمَام
+- خَلْف
+
+Introduce verified Arabic commands with helpful Indonesian or Malay translations.
+
+Example:
+
+"تَقَدَّمْ إِلَى الْأَمَامِ."
+
+The player moves forward to reach the first target.
+
+Make the relationship between the displayed language, the command, and the movement immediately clear.
+
+### Level 2 — Turns
+
+Introduce commands such as:
+
+"اِنْعَطِفْ يَمِينًا."
+
+The player must reach a destination using the correct turn.
+
+Provide feedback when the player chooses the wrong path.
+
+Do not repeatedly restart the entire level after a small mistake.
+
+### Level 3 — Multiple instructions
+
+Example:
+
+"تَقَدَّمْ، ثُمَّ اِنْعَطِفْ يَسَارًا، وَادْخُلِ الْبَابَ الْأَزْرَقَ."
+
+The player must retain the sequence, move through the correct streets, and enter the correct destination.
+
+Introduce sequence memory gradually.
+
+### Level 4 — Spatial relationships
+
+Introduce:
+
+- فَوْق
+- تَحْت
+- دَاخِل
+- خَارِج
+- بَيْن
+- بِجَانِب
+- قَرِيب
+- بَعِيد
+
+Create appropriate three-dimensional-looking or multi-level environments where those relationships can be understood visually.
+
+Do not incorrectly use a flat ground movement mechanic to represent every spatial concept. For example, "above" and "below" need clear visual context, such as stairs, shelves, floors, or objects.
+
+### Level 5 — Listen and act
+
+When suitable audio is available, play the instruction and ask the learner to execute it.
+
+Gradually allow the learner to operate with fewer visual translations.
+
+### Level 6 — Transfer
+
+Introduce an unfamiliar neighborhood with different buildings, arrangements, and destinations.
+
+Use previously learned words in new contexts.
+
+The learner should demonstrate comprehension rather than memorizing a single fixed route.
+
+## Feedback and scoring
+
+Reward:
+
+- Correctly interpreting instructions.
+- Completing routes successfully.
+- Remembering multi-step sequences.
+- Applying previously learned vocabulary.
+- Improved understanding across attempts.
+
+Do not make speed the primary scoring factor.
+
+Offer optional challenges that reward efficiency after comprehension is established.
+
+When a learner makes a mistake:
+
+- Explain the meaning of the relevant phrase.
+- Provide a visual hint.
+- Allow another attempt.
+- Record the mistake for later practice when appropriate.
+
+Every level must have a start state, active gameplay, success state, failure or retry handling, and a working restart action.
+
+---
+
+# 6. GAME TWO — THE SCENE LAB
+
+Working title: "The Scene Does Not Lie."
+
+## Core concept
+
+The learner sees an illustrated scene and receives an Arabic instruction.
+
+The task is to select the scene or action that accurately represents the instruction.
+
+Use interactive scenes, not only a list of static answer buttons.
+
+Example:
+
+"الْكِتَابُ تَحْتَ الطَّاوِلَةِ."
+
+Show three clear alternatives:
+
+- A book under a table.
+- A book on a table.
+- A book beside a table.
+
+The learner selects the accurate scene.
+
+## Progression
+
+Start with:
+
+- Objects and names.
+- Colors.
+- Simple location words.
+
+Then introduce:
+
+- Actions and verbs.
+- Descriptive sentences.
+- Pronouns.
+- Short instructions.
+- Multiple relationships within a single scene.
+
+Eventually, require the player to select the correct components to construct a scene that matches an Arabic sentence.
+
+The player might move objects into positions or ask a character to perform a specified action.
+
+## Educational rules
+
+Every visual scene must accurately represent the target sentence.
+
+Do not include ambiguous images when assessing a specific linguistic relationship.
+
+Where several interpretations are reasonable, accept the valid answers.
+
+After an incorrect choice, explain the relevant language concept briefly.
+
+Reuse the same verified vocabulary across multiple scenes and games.
+
+---
+
+# 7. GAME THREE — THE MARKET
+
+Working title: "Market Missions."
+
+## Core concept
+
+The player manages a small market stall and must fulfill requests expressed in Arabic.
+
+The task is to understand a customer and select the correct products and quantities.
+
+Example:
+
+"أَعْطِنِي تُفَّاحَتَيْنِ حَمْرَاوَيْنِ."
+
+The learner must select two red apples, place them in a basket, and complete the delivery.
+
+Use Arabic examples that have been checked for grammatical correctness and naturalness.
+
+## Progression
+
+### Stage 1 — Names
+
+Identify familiar products.
+
+### Stage 2 — Colors
+
+Match Arabic color words to products.
+
+### Stage 3 — Quantity
+
+Understand numbers and the quantities required.
+
+### Stage 4 — Descriptions
+
+Understand the difference between red and green, large and small, or other appropriate vocabulary.
+
+### Stage 5 — Simple requests
+
+Fulfill complete Arabic instructions.
+
+### Stage 6 — More complex orders
+
+Combine quantities, descriptions, objects, and simple contextual information.
+
+Where appropriate, introduce singular, dual, and plural distinctions, along with adjective agreement. Do not introduce complex grammar before learners have the appropriate foundations.
+
+## Gameplay
+
+Allow players to:
+
+- Select objects.
+- Place them in a basket.
+- Remove incorrect objects.
+- Submit an order.
+- Receive corrective feedback.
+- Retry the order.
+- Unlock new product collections after demonstrating understanding.
+
+Do not make purchases, real payments, or financial transactions part of the MVP.
+
+Use the market purely as an educational simulation.
+
+---
+
+# 8. GAME FOUR — THE SENTENCE BRIDGE
+
+## Core concept
+
+Create a puzzle environment in which a character cannot proceed until the learner constructs a meaningful Arabic sentence.
+
+The learner drags or selects word tiles, arranges them into a sentence, and then checks the meaning.
+
+Example:
+
+"يَقْرَأُ الْوَلَدُ الْكِتَابَ."
+
+The player builds the sentence using the provided word tiles.
+
+When the answer is accepted, a path or bridge becomes available and the player continues.
+
+## Requirements
+
+- Support touch and mouse interaction.
+- Provide a way to undo and rearrange tiles.
+- Give contextual hints.
+- Explain why the accepted sentence works.
+- Support valid alternative answers when appropriate.
+- Use a validated answer model instead of hard-coded assumptions about a single word order.
+
+The visual bridge is a metaphor for sentence construction, not a reward attached to religious merit.
+
+Progress from simple patterns to pronouns, prepositions, sentence relationships, and selected intermediate structures.
+
+---
+
+# 9. GAME FIVE — THE LOST MESSAGE
+
+## Core concept
+
+Create a short, branching narrative in which the learner must understand Arabic to progress.
+
+A character needs to deliver a message somewhere in the neighborhood.
+
+The player interacts with residents, interprets requests, follows instructions, and solves small language-based problems.
+
+Each meaningful choice should affect the immediate next step of the story.
+
+## Mechanics
+
+- Dialogue selection.
+- Short Arabic instructions.
+- Contextual vocabulary.
+- Route choices.
+- Evidence or clue collection.
+- Simple task completion.
+- Occasional replay for alternative paths.
+
+Start with limited, carefully designed stories rather than a large amount of repetitive generated dialogue.
+
+Every dialogue option must have an educational reason for being present.
+
+Incorrect choices should lead to understandable consequences and learning feedback, not unexplained game-over screens.
+
+Reuse vocabulary and grammar already introduced in the other games.
+
+Where practical, allow optional audio playback for dialogues.
+
+---
+
+# 10. GAME SIX — THE WORD DETECTIVE
+
+## Core concept
+
+Create an investigative word-learning game that helps advanced beginners and intermediate learners notice relationships between Arabic word forms.
+
+The learner receives clues, investigates related words, and builds a visual family of words.
+
+For example, a validated set may explore:
+
+- كَتَبَ
+- كِتَاب
+- كَاتِب
+- مَكْتُوب
+
+The task is not simply to match each word to a translation.
+
+The learner should understand that these forms have relationships while recognizing that grammatical form, meaning, and contextual usage are not identical.
+
+## Requirements
+
+- Show verified lexical or morphological relationships.
+- Distinguish roots, stems, derived forms, and inflections where applicable.
+- Allow exploration of words through visual nodes and connections.
+- Ask learners to predict or identify relationships.
+- Reveal explanations when the learner needs help.
+- Provide examples in context.
+- Reuse vocabulary already learned where possible.
+
+Do not invent Arabic roots or assume that visually similar words necessarily share a useful semantic relationship.
+
+Use a validated lexical dataset and expose source information to learners when appropriate.
+
+Do not automatically label every visually related word as having the same underlying meaning.
+
+---
+
+# 11. GAME SEVEN — QURANIC DISCOVERY
+
+This experience connects the game world to the core purpose of the platform: understanding Quranic Arabic.
+
+It must be implemented with stronger content verification and a more restrained visual style than the ordinary games.
+
+## Core experience
+
+The learner opens a selected, verified Quranic passage.
+
+They can:
+
+1. Listen to an authorized recitation when available.
+2. Select an individual word.
+3. Explore a reviewed lexical explanation.
+4. Examine a relevant grammatical relationship.
+5. View an accurately attributed translation.
+6. Complete a language-comprehension activity.
+7. Review previously learned vocabulary in later sessions.
+
+## Design restrictions
+
+- Do not use Quranic verses as collectible coins, projectiles, platforms, obstacles, or objects that are jumped on.
+- Do not use arcade-style effects that trivialize the sacred text.
+- Do not assign spiritual rewards, blessings, or religious merit points.
+- Do not present gameplay results as a measure of a person's faith or piety.
+- Do not generate or invent Quranic interpretations.
+- Do not confuse a lexical gloss with tafsir.
+- Do not represent a learner's personal reflection as authoritative interpretation.
+
+Reward educational effort and demonstrated language comprehension, not the sacred status of the text itself.
+
+The presentation should be beautiful, calm, accurate, and respectful.
+
+## Content verification
+
+Use only Quranic text, translations, references, audio, and tafsir content from identified sources with appropriate licensing and editorial review.
+
+Store source attribution with each relevant content item.
+
+If no verified Quranic content exists for a planned activity, do not invent some to populate the game.
+
+Use clearly labeled general Arabic demonstration content until valid educational material has been reviewed.
+
+---
+
+# 12. BUILD ONE SHARED VOCABULARY AND SKILL SYSTEM
+
+This is one of the most important architectural requirements.
+
+All games must use a shared educational data model.
+
+If a learner discovers the meaning of "أَمَام" in the Neighborhood, that knowledge must be available to other relevant games, lessons, and review activities.
+
+Create reusable vocabulary records containing, as appropriate:
+
+- Stable vocabulary ID.
+- Arabic form with verified diacritics.
+- Locale-specific explanations.
+- Transliteration where educationally appropriate.
+- Part of speech.
+- Validated grammatical information.
+- Approved audio reference.
+- Source references.
+- Learning-level metadata.
+- Related forms and terms.
+- Example sentences.
+- Editorial review status.
+
+Create lesson and game-task records that can reference the shared vocabulary.
+
+A game must not independently create a different translation for a word already defined in the canonical content system.
+
+Create a skill map covering areas such as:
+
+- Word recognition.
+- Vocabulary comprehension.
+- Spatial language.
+- Instructions.
+- Listening comprehension.
+- Sentence comprehension.
+- Basic grammar.
+- Morphology.
+- Quranic vocabulary.
+
+Use demonstrated learner responses to estimate progress.
+
+Clearly distinguish exposure, lesson completion, and demonstrated mastery.
+
+Do not give learners inflated mastery percentages simply because they opened a game.
+
+---
+
+# 13. SPACED REPETITION AND SKILL TRANSFER
+
+Implement a reusable review system.
+
+When the learner makes repeated mistakes with a word or phrase:
+
+- Record the specific vocabulary or skill involved.
+- Offer an appropriate review activity.
+- Reintroduce the word in a different game.
+- Schedule a later recall opportunity.
+- Track whether performance improves.
+
+Allow users to revise and delete their learning history where appropriate.
+
+The system should adapt to what the learner actually finds difficult.
+
+Do not rely exclusively on the same question or image to measure retention.
+
+For example, a learner who understands "تَحْتَ" in the Scene Lab should later encounter the term in a new scene or direction task.
+
+Distinguish recall from recognition.
+
+Avoid generating enormous numbers of repetitive tasks just to increase session duration.
+
+---
+
+# 14. A PROGRESSION SYSTEM THAT IS FUN BUT NOT MANIPULATIVE
+
+Create a shared progression model.
+
+Suggested components:
+
+- Experience points for successfully completed learning activities.
+- Stars or medals for optional challenges.
+- World-map unlocks.
+- Personal achievements.
+- Vocabulary milestones.
+- Review goals.
+- Optional daily learning targets.
+
+Rewards should be based on meaningful progress and effort.
+
+Do not make speed more important than comprehension.
+
+Do not punish missed days.
+
+Do not show public religious rankings.
+
+Do not create guilt-inducing notifications.
+
+Do not imply that the learner has greater religious merit because they have earned more points.
+
+Keep all competitive elements optional and secondary to learning.
+
+A learner should still feel accomplished after a short, quiet session.
+
+---
+
+# 15. CENTRAL WORLD MAP AND NAVIGATION
+
+Integrate the games into the current platform's navigation and dashboard.
+
+Do not hide the current learning pathways or make the existing educational content irrelevant.
+
+The main navigation should provide clear access to:
+
+- Dashboard.
+- Learning paths.
+- Interactive world.
+- Lessons.
+- Vocabulary and review.
+- Progress.
+
+Use localized navigation labels.
+
+The world map should:
+
+- Show game locations.
+- Indicate available and completed activities.
+- Explain the skill taught at each location.
+- Guide the learner toward an appropriate activity.
+- Visually distinguish available features from future or locked ones.
+
+Do not display nonfunctional locations as if they already contain complete games.
+
+If a game is not implemented, either omit it from the playable world or clearly label it as forthcoming.
+
+Do not create fake completion states.
+
+The educational hub and the game world must share the same progress and user state.
+
+---
+
+# 16. INDONESIAN AND MALAYSIAN LOCALIZATION
+
+The application must support both:
+
+- `id-ID` — Bahasa Indonesia.
+- `ms-MY` — Bahasa Melayu as used in Malaysia.
+
+Review the existing locale architecture and preserve established URL and component conventions.
+
+Every new game must be localized, including:
+
+- Instructions.
+- Hints.
+- Buttons.
+- Progress information.
+- Level names.
+- Tutorials.
+- Error messages.
+- Success screens.
+- Achievement descriptions.
+- Settings.
+- Accessibility labels.
+
+Arabic learning examples remain in Arabic where appropriate, accompanied by accurate, locally natural explanations.
+
+Use Indonesian vocabulary for Indonesia and Malaysian Malay vocabulary for Malaysia.
+
+Do not treat them as interchangeable translations.
+
+Examples of the tone to aim for:
+
+Indonesia:
+"Ikuti petunjuk dalam bahasa Arab untuk menemukan jalan yang benar."
+
+Malaysia:
+"Ikuti arahan dalam bahasa Arab untuk mencari laluan yang betul."
+
+Have the localization reviewed by competent speakers before production release.
+
+Never change a language selector visually without actually changing the localized content.
+
+---
+
+# 17. VISUAL ART DIRECTION
+
+Create an identifiable visual style for the World of Meaning.
+
+## Overall direction
+
+Use a polished 2D casual-game aesthetic with:
+
+- Attractive environments.
+- Clear character silhouettes.
+- Meaningful object animation.
+- Intuitive movement.
+- Carefully controlled color.
+- Subtle transitions.
+- Friendly characters.
+- Crisp shapes.
+- Clear educational feedback.
+
+The environments should be visually enjoyable but not so detailed that the learner struggles to identify the target object.
+
+Avoid an infantile or cartoon-baby aesthetic.
+
+The product should be suitable for adult learners.
+
+## Reuse assets intelligently
+
+Create a consistent system of:
+
+- Characters.
+- Buildings.
+- Doors and landmarks.
+- Objects and products.
+- Scene components.
+- Environmental tiles.
+- Animations.
+- Movement controls.
+- Status indicators.
+
+Reuse art assets across levels where appropriate, but vary environments and challenges enough to prevent the experience from feeling repetitive.
+
+Prefer original or properly licensed assets.
+
+Do not depend on external images that may disappear, or use copyrighted game assets without permission.
+
+Use the existing design system where it helps preserve the brand, while establishing a distinct visual language for interactive gameplay.
+
+## Interface separation
+
+Keep conventional course pages clean, calm, and editorial.
+
+Allow the game environments to be more colorful and animated.
+
+Maintain clear visual continuity through typography, component behavior, progression indicators, and branding.
+
+Use motion for meaningful feedback, not decoration.
+
+Respect reduced-motion preferences.
+
+---
+
+# 18. RESPONSIVE CONTROLS AND ACCESSIBILITY
+
+The games must work on phones and desktops.
+
+For mobile:
+
+- Use large touch targets.
+- Keep important controls within comfortable reach.
+- Prevent accidental page scrolling while using movement controls, without trapping users unnecessarily.
+- Scale the world to the viewport.
+- Provide clear pause and exit controls.
+- Avoid requiring precise mouse movements.
+- Support portrait orientation first where reasonable, and handle landscape gracefully.
+
+For desktop:
+
+- Support keyboard controls and focus navigation.
+- Include understandable on-screen control instructions.
+- Prevent keyboard input from interfering with text fields or unrelated interface elements.
+
+Accessibility:
+
+- Use suitable text contrast.
+- Provide non-color indicators of correctness.
+- Include accessible labels for major actions.
+- Support scalable text.
+- Make critical game instructions available as text.
+- Do not make audio the only means of understanding a task.
+- Respect reduced-motion settings.
+- Keep a practical way to pause, restart, or exit an activity.
+
+Use clear language and avoid overwhelming beginners with simultaneous visual, audio, and written instructions.
+
+---
+
+# 19. TECHNICAL IMPLEMENTATION
+
+Inspect the current project's framework and preserve it unless there is a compelling, documented technical reason to change.
+
+Do not migrate technologies solely for stylistic preference.
+
+Use the lightest appropriate game implementation that can support the required mechanics.
+
+For simple 2D games, consider an HTML Canvas, SVG, or the current framework's appropriate rendering approach.
+
+Use a dedicated game framework only when it materially helps with movement, collisions, animation, input, and game-state management.
+
+Do not introduce a large dependency solely to animate a few buttons.
+
+Separate:
+
+- Game rendering.
+- Game state.
+- Input handling.
+- Learning content.
+- Progress management.
+- Localization.
+- Audio.
+- Scoring.
+- Review scheduling.
+
+Each game should have reusable, testable components.
+
+Implement appropriate game states:
+
+- Ready.
+- Playing.
+- Paused.
+- Success.
+- Retry.
+- Completed.
+
+Avoid storing essential learner progress only in transient component state.
+
+If a backend is configured, use authenticated, secure server-side persistence.
+
+If the project has no backend, use a clearly documented local persistence strategy as an MVP fallback.
+
+Never claim that data is synchronized across devices unless that functionality actually exists.
+
+For saved progress, handle missing, corrupted, and outdated local data safely.
+
+Do not hard-code fake progress for new users.
+
+If demo mode is needed, label it explicitly and isolate demonstration data from real learner records.
+
+---
+
+# 20. PERFORMANCE AND STABILITY
+
+Optimize the world and game rendering for common mobile devices.
+
+Requirements:
+
+- Load only the resources needed for the current activity.
+- Avoid giant image assets where smaller sprites or vectors suffice.
+- Avoid unnecessary animation loops when the game is idle or paused.
+- Prevent uncontrolled timers and duplicated keyboard handlers.
+- Clean up event listeners when leaving a game.
+- Maintain stable movement and collision behavior.
+- Avoid blocking the entire application when one game fails to initialize.
+- Preserve learner progress during recoverable errors.
+- Show meaningful loading and error states.
+
+Do not let decorative effects compromise movement responsiveness.
+
+Keep the initial page lightweight and load interactive worlds progressively.
+
+---
+
+# 21. EDUCATIONAL CONTENT AND QUALITY CONTROL
+
+All educational examples must be reviewed for linguistic correctness.
+
+This includes:
+
+- Arabic spelling.
+- Diacritics.
+- Grammatical agreement.
+- Word order.
+- Natural imperatives.
+- Vocabulary meanings.
+- Morphological relationships.
+- Contextual usage.
+- Indonesian and Malaysian explanations.
+
+Create a content validation workflow.
+
+Possible status values include:
+
+- Draft.
+- Needs linguistic review.
+- Needs source verification.
+- Approved for publication.
+
+Do not treat source labels in the code as evidence of actual human review.
+
+Keep unapproved educational data out of production learning paths or label it clearly as demonstration material.
+
+For Quranic data:
+
+- Never invent verses or Quranic wording.
+- Never fabricate references or translations.
+- Verify verse boundaries and the alignment of words with their source text.
+- Attribute translations and tafsir.
+- Check audio licenses.
+- Separate language teaching from authoritative religious interpretation.
+- Have qualified reviewers approve religious instructional content before publication.
+
+AI may assist with draft generation, but must not be treated as an authoritative validator of religious claims.
+
+---
+
+# 22. PRODUCT ANALYTICS AND LEARNING OUTCOMES
+
+Track the performance of the educational experience, not merely engagement.
+
+Where analytics are configured and appropriately consented to, useful events may include:
+
+- Game started.
+- Game completed.
+- Level restarted.
+- Task answered correctly.
+- Task answered incorrectly.
+- Hint requested.
+- Previously learned word recalled.
+- Review session completed.
+- Learner returned for another session.
+
+Collect only necessary data.
+
+Do not publicly expose private learning histories.
+
+Do not collect sensitive personal information without a justified need and appropriate protections.
+
+The main learning metrics should include:
+
+- First-session completion.
+- Ability to understand instructions after multiple exposures.
+- Recall after a delay.
+- Transfer to a different scene or game.
+- Drop-off points.
+- Voluntary return and review.
+
+Higher play time or more clicks do not automatically mean better learning.
+
+Design the code so these metrics can be connected to a real analytics provider later without rebuilding the educational architecture.
+
+---
+
+# 23. IMPLEMENTATION PLAN
+
+Implement a complete, playable MVP before spreading development too thinly across many partially implemented games.
+
+## Phase 1 — Foundation and shared world
+
+Implement:
+
+1. Repository audit.
+2. World map and navigation.
+3. Shared vocabulary and skill data model.
+4. Reusable game-state architecture.
+5. Progress persistence appropriate to the actual backend.
+6. Localization for both markets.
+7. Unified level and feedback components.
+
+## Phase 2 — Three fully playable core games
+
+Implement the following as genuinely playable games:
+
+A. Arabic Street Explorer.
+
+B. The Scene Lab.
+
+C. The Market.
+
+Each must have:
+
+- Multiple working levels.
+- Real player input.
+- Correct win and retry conditions.
+- Appropriate feedback.
+- Verified language content.
+- Mobile and desktop support.
+- Connection to the shared vocabulary and progress system.
+
+Prioritize depth and quality over excessive level counts.
+
+## Phase 3 — Integrated Quranic learning
+
+Connect verified Quranic vocabulary and selected passages to the existing educational pathway.
+
+Build a small but accurate experience before expanding its content.
+
+Do not fabricate large libraries of Quranic content.
+
+## Phase 4 — Additional game modules
+
+Implement:
+
+- The Sentence Bridge.
+- The Lost Message.
+- The Word Detective.
+
+Reuse the established architecture and progress system.
+
+If development limitations prevent completion of every game, complete the three core games first and clearly label unimplemented modules. Do not create fake gameplay that merely looks functional.
+
+## Phase 5 — Testing and refinement
+
+Test with sample learners representing both locales, if appropriate test participants are available.
+
+Inspect where learners misunderstand instructions, abandon levels, request hints, or fail to recall vocabulary later.
+
+Refine the user experience based on evidence rather than adding more animations or points indiscriminately.
+
+---
+
+# 24. TESTING AND ACCEPTANCE CRITERIA
+
+Before reporting completion, verify all the following.
+
+### Existing application
+
+- The original application still runs.
+- Existing educational pages and pathways remain accessible.
+- The new game features are integrated rather than disconnected.
+- The build and type checks succeed where applicable.
+
+### Neighborhood
+
+- The character can actually move.
+- Direction commands map to correct movement.
+- Obstacles and destinations behave correctly.
+- Multi-step commands are evaluated correctly.
+- Incorrect choices offer useful recovery.
+- Completion and retry states work.
+
+### Scene Lab
+
+- The scene matches the instruction.
+- Answers are evaluated correctly.
+- Multiple valid interpretations are handled appropriately.
+- Hints and feedback are meaningful.
+
+### Market
+
+- Products can be selected and removed.
+- Requested quantities are evaluated correctly.
+- Colors and descriptions correspond to the correct objects.
+- Completed and incorrect orders display suitable feedback.
+
+### Shared learning
+
+- Correct and incorrect responses update progress appropriately.
+- Vocabulary can be reused across games.
+- Review items arise from actual learner activity.
+- New users start with clean progress.
+- Progress survives a refresh under the chosen persistence model.
+- Resetting progress works and requires appropriate confirmation.
+
+### Localization
+
+- Both locales cover all new screens and actions.
+- Arabic is rendered correctly with diacritics.
+- RTL and mixed Arabic/Latin text behave correctly.
+- No major untranslated strings remain.
+
+### Content integrity
+
+- No fabricated Quranic references or translations.
+- No unsupported claims about audio, authentication, or data synchronization.
+- Unapproved content is not falsely represented as verified.
+- Word relationships and sample sentences have been reviewed appropriately.
+
+### Accessibility and performance
+
+- Mobile controls remain usable.
+- Keyboard interaction works where applicable.
+- Pausing and exiting work reliably.
+- Reduced-motion preferences are respected.
+- No major console errors or uncontrolled rendering loops remain.
+- A game failure does not make the whole platform unusable.
+
+### Final report
+
+At the end, provide:
+
+- What was implemented.
+- Which games are fully playable.
+- Which features still use demonstration data.
+- Which external integrations remain incomplete.
+- Any remaining technical or educational limitations.
+- Commands for running and testing the application.
+
+Do not claim a feature is complete simply because a component exists.
+
+Do not mark a test as passed without actually running it where the environment permits.
+
+---
+
+# FINAL DIRECTIVE
+
+The goal is not to make an ordinary Arabic website look more playful.
+
+The goal is to change how the learner experiences Arabic.
+
+Build an interconnected educational world where Arabic words become actions, actions become meaningful experiences, and previously learned vocabulary is repeatedly applied in new situations.
+
+Make the Neighborhood, Market, Scene Lab, Sentence Bridge, narrative game, Word Detective, and Quranic Discovery environment feel like parts of one coherent learning system.
+
+Prioritize a small number of truly playable, polished, educationally sound games over a large collection of superficial features.
+
+Preserve the existing product, implement the features in the actual repository, test them, and report honestly what works.
+
+Do not stop at writing a plan. Start by inspecting the codebase and then implement the highest-priority complete vertical slice.

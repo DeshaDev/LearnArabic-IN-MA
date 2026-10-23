@@ -221,3 +221,158 @@ test('all curriculum lessons and editorial articles maintain explicit editorialS
   }
 });
 
+test('stepStreetExplorer enforces obstacles, intermediate waypoints, and reaches target landmark', async () => {
+  const { STREET_EXPLORER_LEVELS } = await import('../data/worldData');
+  const { stepStreetExplorer } = await import('./worldEngine');
+
+  const level1 = STREET_EXPLORER_LEVELS[0]; // start (1,4), intermediate (1,2), target (3,2)
+  // Step up from (1,4) -> (1,3)
+  const step1 = stepStreetExplorer(level1, { x: 1, y: 4 }, 'up', false);
+  assert.deepEqual(step1.nextPos, { x: 1, y: 3 });
+  assert.equal(step1.hitObstacle, false);
+  assert.equal(step1.reachedIntermediate, false);
+
+  // Try stepping right into blocked coord (2,3) -> stays at (1,3)
+  const blockedStep = stepStreetExplorer(level1, { x: 1, y: 3 }, 'right', false);
+  assert.equal(blockedStep.hitObstacle, true);
+  assert.deepEqual(blockedStep.nextPos, { x: 1, y: 3 });
+
+  // Step up to intermediate intersection (1,2)
+  const step2 = stepStreetExplorer(level1, { x: 1, y: 3 }, 'up', false);
+  assert.deepEqual(step2.nextPos, { x: 1, y: 2 });
+  assert.equal(step2.reachedIntermediate, true);
+
+  // Step right twice to target Masjid at (3,2)
+  const step3 = stepStreetExplorer(level1, { x: 1, y: 2 }, 'right', true);
+  assert.deepEqual(step3.nextPos, { x: 2, y: 2 });
+  assert.equal(step3.reachedTarget, false);
+
+  const step4 = stepStreetExplorer(level1, { x: 2, y: 2 }, 'right', true);
+  assert.deepEqual(step4.nextPos, { x: 3, y: 2 });
+  assert.equal(step4.reachedTarget, true);
+});
+
+test('evaluateSceneLabAttempt validates both sentence matching and interactive object placement', async () => {
+  const { SCENE_LAB_STAGES } = await import('../data/worldData');
+  const { evaluateSceneLabAttempt } = await import('./worldEngine');
+
+  const stage1 = SCENE_LAB_STAGES[0];
+  assert.equal(evaluateSceneLabAttempt(stage1, 'opt-1').isCorrect, true);
+  assert.equal(evaluateSceneLabAttempt(stage1, 'opt-2').isCorrect, false);
+
+  const stage5 = SCENE_LAB_STAGES[4]; // interactive placement
+  assert.equal(evaluateSceneLabAttempt(stage5, 'tahta-table').isCorrect, true);
+  assert.equal(evaluateSceneLabAttempt(stage5, 'fawqa-table').isCorrect, false);
+});
+
+test('evaluateMarketOrder distinguishes exact dual match, wrong quantity, and wrong color', async () => {
+  const { MARKET_MISSIONS } = await import('../data/worldData');
+  const { evaluateMarketOrder } = await import('./worldEngine');
+
+  const stage6 = MARKET_MISSIONS[5]; // أَعْطِنِي تُفَّاحَتَيْنِ حَمْرَاوَيْنِ (2 red apples)
+  const exact = evaluateMarketOrder(stage6, { 'item-apple-red': 2 });
+  assert.equal(exact.isCorrect, true);
+
+  const wrongQty = evaluateMarketOrder(stage6, { 'item-apple-red': 1 });
+  assert.equal(wrongQty.isCorrect, false);
+  assert.equal(wrongQty.diagnosticCategory, 'quantity-dual');
+
+  const wrongColor = evaluateMarketOrder(stage6, { 'item-apple-green': 2 });
+  assert.equal(wrongColor.isCorrect, false);
+  assert.equal(wrongColor.diagnosticCategory, 'color-adjective');
+});
+
+test('evaluateSentenceBridge accepts multiple valid Arabic word orders (VSO and SVO)', async () => {
+  const { SENTENCE_BRIDGE_CHALLENGES } = await import('../data/worldData');
+  const { evaluateSentenceBridge } = await import('./worldEngine');
+
+  const bridge1 = SENTENCE_BRIDGE_CHALLENGES[0];
+  // VSO: يَقْرَأُ الْوَلَدُ الْكِتَابَ
+  const vsoResult = evaluateSentenceBridge(bridge1, [
+    't-yaqrau',
+    't-alwaladu',
+    't-alkitaba',
+  ]);
+  assert.equal(vsoResult.isCorrect, true);
+
+  // SVO: الْوَلَدُ يَقْرَأُ الْكِتَابَ
+  const svoResult = evaluateSentenceBridge(bridge1, [
+    't-alwaladu',
+    't-yaqrau',
+    't-alkitaba',
+  ]);
+  assert.equal(svoResult.isCorrect, true);
+
+  // Invalid order
+  const invalidResult = evaluateSentenceBridge(bridge1, [
+    't-alkitaba',
+    't-yaqrau',
+    't-alwaladu',
+  ]);
+  assert.equal(invalidResult.isCorrect, false);
+});
+
+test('recordGameAttemptInProgress updates shared learnedWordIds, schedules spaced review on mistakes, and updates 9-skill map', async () => {
+  const { recordGameAttemptInProgress, computeNineSkillMap } = await import('./worldEngine');
+  const { WORDS } = await import('../data/curriculum');
+
+  const now = 1_700_000_000_000;
+  const initialProgress: LearnerProgress = {
+    locale: 'id-ID',
+    onboardingCompleted: false,
+    activePathway: 'understand-quran',
+    completedLessonIds: [],
+    bookmarkedWordIds: [],
+    learnedWordIds: [],
+    reviewQueue: {},
+    lessonQuizScores: {},
+    reflections: {},
+    dailyGoalMinutes: 10,
+    showTransliteration: true,
+    arabicFontScale: 'large',
+    remindersEnabled: false,
+    ramadanModeEnabled: false,
+  };
+
+  // Record a mistake first -> schedules word as due immediately in reviewQueue
+  const afterMistake = recordGameAttemptInProgress(
+    initialProgress,
+    {
+      locationId: 'street-explorer',
+      levelNumber: 1,
+      wordIds: ['w-world-amam', 'w-world-yamin'],
+      mistakesCount: 1,
+      ArabicPrompt: 'اِتَّجِهْ إِلَى الْأَمَامِ',
+      diagnosticCategory: 'direction',
+    },
+    false,
+    now
+  );
+  assert.equal(afterMistake.reviewQueue['w-world-amam'].dueTimestamp, now);
+  assert.equal(afterMistake.worldProgress?.mistakeHistory.length, 1);
+
+  // Record level completion -> adds words to learnedWordIds, increments XP/stars, and updates skill demonstrations
+  const afterSuccess = recordGameAttemptInProgress(
+    afterMistake,
+    {
+      locationId: 'street-explorer',
+      levelNumber: 1,
+      wordIds: ['w-world-amam', 'w-world-yamin'],
+      mistakesCount: 0,
+      ArabicPrompt: 'اِتَّجِهْ إِلَى الْأَمَامِ',
+    },
+    true,
+    now + 1000
+  );
+  assert.ok(afterSuccess.learnedWordIds.includes('w-world-amam'));
+  assert.ok(afterSuccess.learnedWordIds.includes('w-world-yamin'));
+  assert.equal(afterSuccess.worldProgress?.totalStars, 3);
+  assert.ok((afterSuccess.worldProgress?.xp || 0) > 0);
+
+  const nineSkills = computeNineSkillMap(afterSuccess, WORDS);
+  assert.equal(nineSkills.length, 9);
+  const spatialSkill = nineSkills.find((s) => s.id === 'spatial-language');
+  assert.equal(spatialSkill?.demonstratedCount, 1);
+});
+
+

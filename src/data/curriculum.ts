@@ -9,6 +9,7 @@ import {
   EXTRA_LESSONS,
   EXTRA_CURRICULUM_LEVELS,
 } from './curriculumExpanded';
+import { WORLD_WORDS } from './worldData';
 
 import { resolveWordAudioUrl } from '../utils/audioPlayer';
 
@@ -22,6 +23,7 @@ function deriveSourceUrlFromVerseRef(verseRef: string): string {
 
 const RAW_WORDS: WordToken[] = [
   ...EXTRA_WORDS,
+  ...WORLD_WORDS,
   {
     id: 'w-bismi',
     arabic: 'بِسْمِ',

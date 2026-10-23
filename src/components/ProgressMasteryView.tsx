@@ -2,7 +2,8 @@ import React from 'react';
 import { LearnerProgress, LocaleCode } from '../types/learning';
 import { LESSONS, WORDS } from '../data/curriculum';
 import { computeSkillBreakdown } from '../utils/learningEngine';
-import { CheckCircle2, ShieldCheck } from 'lucide-react';
+import { computeNineSkillMap } from '../utils/worldEngine';
+import { CheckCircle2, ShieldCheck, Sparkles, Star } from 'lucide-react';
 
 interface ProgressMasteryViewProps {
   locale: LocaleCode;
@@ -14,6 +15,7 @@ export const ProgressMasteryView: React.FC<ProgressMasteryViewProps> = ({
   progress,
 }) => {
   const skills = computeSkillBreakdown(progress, WORDS);
+  const nineWorldSkills = computeNineSkillMap(progress, WORDS);
   const reflectionEntries = Object.entries(progress.reflections).filter(
     ([, text]) => text.trim().length > 0
   );
@@ -39,7 +41,7 @@ export const ProgressMasteryView: React.FC<ProgressMasteryViewProps> = ({
       </div>
 
       {/* Distinction Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-2xl p-6 border border-[#1C2724]/12">
           <div className="text-xs font-semibold text-[#1C2724]/65">
             {locale === 'id-ID' ? 'Modul Pelajaran Diselesaikan' : 'Modul Pelajaran Diselesaikan'}
@@ -63,8 +65,8 @@ export const ProgressMasteryView: React.FC<ProgressMasteryViewProps> = ({
           </div>
           <p className="text-xs text-[#1C2724]/70 mt-2">
             {locale === 'id-ID'
-              ? 'Kosakata Al-Qur’an yang telah dipelajari arti kontekstual dan akarnya.'
-              : 'Kosa kata al-Quran yang telah dipelajari makna kontekstual dan akarnya.'}
+              ? 'Kosakata Al-Qur’an & Dunia Makna yang telah dipelajari arti dan akarnya.'
+              : 'Kosa kata al-Quran & Dunia Makna yang telah dipelajari makna dan akarnya.'}
           </p>
         </div>
 
@@ -84,6 +86,78 @@ export const ProgressMasteryView: React.FC<ProgressMasteryViewProps> = ({
               ? 'Kata yang berhasil Anda jawab kembali dengan benar pada sesi ulasan berjarak.'
               : 'Perkataan yang berjaya anda jawab semula dengan betul dalam sesi ulang kaji berjarak.'}
           </p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-[#1C2724]/12">
+          <div className="text-xs font-semibold text-[#1C2724]/65">
+            {locale === 'id-ID' ? 'Tantangan Dunia Makna' : 'Cabaran Dunia Makna'}
+          </div>
+          <div className="text-3xl font-bold text-[#145A4A] mt-2 tabular-nums flex items-center gap-2">
+            <Star className="w-6 h-6 fill-[#D8A75B] text-[#D8A75B] shrink-0" />
+            <span>{progress.worldProgress?.totalStars || 0}</span>
+            <span className="text-sm font-semibold text-[#1C2724]/65">
+              ({progress.worldProgress?.xp || 0} XP)
+            </span>
+          </div>
+          <p className="text-xs text-[#1C2724]/70 mt-2">
+            {locale === 'id-ID'
+              ? 'Bintang pembuktian pemahaman arah, adegan visual, pasar, dan jembatan kalimat.'
+              : 'Bintang pembuktian kefahaman arah, adegan visual, pasar dan jambatan ayat.'}
+          </p>
+        </div>
+      </div>
+
+      {/* 9 Skill Dimensions Map (World of Meaning + Quranic Transfer) */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#145A4A]/25 space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1C2724]/10">
+          <div>
+            <h2 className="text-lg font-bold text-[#1C2724]">
+              {locale === 'id-ID'
+                ? 'Peta 9 Dimensi Keterampilan Bahasa Arab & Al-Qur’an (Dunia Makna)'
+                : 'Peta 9 Dimensi Kemahiran Bahasa Arab & al-Quran (Dunia Makna)'}
+            </h2>
+            <p className="text-xs text-[#1C2724]/65 mt-0.5">
+              {locale === 'id-ID'
+                ? 'Diperbarui secara nyata dari jawaban benar Anda di Ayat Explorer dan 7 lokasi Dunia Makna.'
+                : 'Dikemas kini secara sebenar daripada jawapan betul anda di Ayat Explorer dan 7 lokasi Dunia Makna.'}
+            </p>
+          </div>
+          <Sparkles className="w-5 h-5 text-[#145A4A]" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {nineWorldSkills.map((skill) => {
+            const ratio = Math.min(
+              100,
+              Math.round((skill.demonstratedCount / skill.targetCount) * 100)
+            );
+            return (
+              <div
+                key={skill.id}
+                className="p-4 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/10 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-xs sm:text-sm font-bold text-[#1C2724]">
+                      {skill.label[locale]}
+                    </h3>
+                    <span className="text-xs font-bold text-[#145A4A] tabular-nums shrink-0">
+                      {skill.demonstratedCount}/{skill.targetCount}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#1C2724]/70 mt-1 leading-relaxed">
+                    {skill.evidenceDescription[locale]}
+                  </p>
+                </div>
+                <div className="mt-3 w-full h-2 bg-white rounded-full overflow-hidden border border-[#1C2724]/10">
+                  <div
+                    className="h-full bg-[#145A4A] transition-all"
+                    style={{ width: `${ratio}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

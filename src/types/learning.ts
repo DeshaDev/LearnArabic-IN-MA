@@ -204,6 +204,65 @@ export interface TeacherReviewRequest {
   submittedAt: number;
 }
 
+export type WorldLocationId =
+  | 'street-explorer'
+  | 'scene-lab'
+  | 'market'
+  | 'sentence-bridge'
+  | 'lost-message'
+  | 'word-detective'
+  | 'quranic-discovery';
+
+export type GameLifecycleState =
+  | 'ready'
+  | 'playing'
+  | 'paused'
+  | 'success'
+  | 'retry'
+  | 'completed';
+
+export type WorldSkillId =
+  | 'word-recognition'
+  | 'vocabulary-comprehension'
+  | 'spatial-language'
+  | 'following-instructions'
+  | 'listening-comprehension'
+  | 'sentence-comprehension'
+  | 'basic-grammar'
+  | 'morphology-roots'
+  | 'quranic-vocabulary';
+
+export interface WorldLevelResult {
+  locationId: WorldLocationId;
+  levelNumber: number;
+  stars: number; // 1 to 3
+  bestScore: number;
+  attempts: number;
+  mistakesCount: number;
+  completedAt: number;
+}
+
+export interface WorldMistakeEntry {
+  id: string;
+  locationId: WorldLocationId;
+  levelNumber: number;
+  wordId?: string;
+  arabicPrompt: string;
+  diagnosticCategory: 'direction' | 'spatial' | 'quantity-dual' | 'color-adjective' | 'word-order' | 'morphology' | 'comprehension';
+  feedback: LocalizedText;
+  timestamp: number;
+}
+
+export interface WorldProgressState {
+  xp: number;
+  totalStars: number;
+  unlockedLocations: WorldLocationId[];
+  completedLevels: Record<string, WorldLevelResult>; // key: `${locationId}:${levelNumber}`
+  skillDemonstrations: Record<WorldSkillId, number>;
+  mistakeHistory: WorldMistakeEntry[];
+  lastPlayedLocation?: WorldLocationId;
+}
+
 export interface LearnerProgress {
   locale: LocaleCode;
   isDemoMode?: boolean;
@@ -222,6 +281,8 @@ export interface LearnerProgress {
   reflections: Record<string, string>;
   teacherReviewRequests?: TeacherReviewRequest[];
   analyticsEvents?: LearningAnalyticsEvent[];
+  worldProgress?: WorldProgressState;
+  reducedMotion?: boolean;
   dailyGoalMinutes: 5 | 10 | 15;
   showTransliteration: boolean;
   arabicFontScale: 'normal' | 'large' | 'xlarge';
@@ -250,4 +311,5 @@ export interface EditorialArticle {
   bodyParagraphs: LocalizedText[];
   relatedPathwayId: PathwayId;
 }
+
 
