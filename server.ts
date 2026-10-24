@@ -262,7 +262,7 @@ async function startServer() {
       res.status(400).json({ error: 'INVALID_PROGRESS_PAYLOAD' }); return;
     }
 
-    const userId = \`usr_\${crypto.randomBytes(8).toString('hex')}\`;
+    const userId = `usr_${crypto.randomBytes(8).toString('hex')}`;
     const salt = crypto.randomBytes(16).toString('hex');
     const passwordHash = hashPassword(password, salt);
     const now = Date.now();
@@ -394,7 +394,7 @@ async function startServer() {
 
     const db = loadDb();
     const now = Date.now();
-    const ticketId = \`FA-\${now.toString(36).toUpperCase().slice(-6)}-\${crypto.randomBytes(3).toString('hex').toUpperCase()}\`;
+    const ticketId = `FA-${now.toString(36).toUpperCase().slice(-6)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
     const submission: StoredContactSubmission = {
       ticketId, name: name.trim(), email: email.trim(),
       category: category === 'partnership' || category === 'support' ? category : 'editorial',
@@ -445,7 +445,7 @@ async function startServer() {
     const db = loadDb();
     const user = getAuthenticatedUser(req, db);
     const now = Date.now();
-    const requestId = \`TR-\${now.toString(36).toUpperCase().slice(-6)}-\${crypto.randomBytes(3).toString('hex').toUpperCase()}\`;
+    const requestId = `TR-${now.toString(36).toUpperCase().slice(-6)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
     const newRequest: StoredTeacherReviewRequest = {
       id: requestId, userId: user?.id, lessonId: lessonId.trim(),
       verseRef: typeof verseRef === 'string' && verseRef.trim() ? verseRef.trim() : lessonId.trim(),
