@@ -464,6 +464,11 @@ async function startServer() {
     });
   });
 
+  // Unknown API paths must return JSON, never the SPA HTML document.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ ok: false, error: 'NOT_FOUND' });
+  });
+
   const isProd = process.env.NODE_ENV === 'production';
   const appUrl = process.env.APP_URL || `http://localhost:${PORT}`;
 
