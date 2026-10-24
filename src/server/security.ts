@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import type { Request, RequestHandler } from 'express';
 
 export function hashSessionToken(token: string): string {
