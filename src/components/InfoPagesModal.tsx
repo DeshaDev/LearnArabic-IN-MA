@@ -101,7 +101,7 @@ export const InfoPagesModal: React.FC<InfoPagesModalProps> = ({
       }
       setContactTicket({
         ticketId: data.ticketId,
-        submittedAt: data.submittedAt || Date.now(),
+        submittedAt: data.receivedAt || data.submittedAt || Date.now(),
       });
     } catch (err: any) {
       setContactError(
@@ -521,8 +521,8 @@ export const InfoPagesModal: React.FC<InfoPagesModalProps> = ({
               </p>
               <p>
                 {locale === 'id-ID'
-                  ? 'Jika Anda memilih membuat akun, kata sandi di-hash menggunakan scrypt di server dan kemajuan belajar disimpan untuk sinkronisasi lintas sesi. Seluruh riwayat dapat diatur ulang kapan saja melalui halaman Pengaturan.'
-                  : 'Jika anda memilih untuk mencipta akaun, kata laluan di-hash menggunakan scrypt pada pelayan dan kemajuan pembelajaran disimpan untuk penyegerakan merentas sesi. Semua sejarah boleh ditetapkan semula pada bila-bila masa melalui halaman Tetapan.'}
+                  ? 'Jika Anda memilih membuat akun, kata sandi di-hash menggunakan scrypt di server dan kemajuan belajar disimpan untuk sinkronisasi lintas sesi. Sesi masuk berakhir otomatis setelah 30 hari; tombol Keluar Akun juga mencabut sesi di server.'
+                  : 'Jika anda memilih untuk mencipta akaun, kata laluan di-hash menggunakan scrypt pada pelayan dan kemajuan pembelajaran disimpan untuk penyegerakan merentas sesi. Sesi log masuk tamat secara automatik selepas 30 hari; butang Log Keluar turut membatalkan sesi pada pelayan.'}
               </p>
             </>
           )}
@@ -604,11 +604,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       );
       return;
     }
-    if (password.length < 6) {
+    const minimumPasswordLength = mode === 'register' ? 12 : 6;
+    if (password.length < minimumPasswordLength) {
       setError(
-        locale === 'id-ID'
-          ? 'Kata sandi minimal 6 karakter.'
-          : 'Kata laluan mestilah sekurang-kurangnya 6 aksara.'
+        mode === 'register'
+          ? locale === 'id-ID'
+            ? 'Kata sandi pendaftaran minimal 12 karakter.'
+            : 'Kata laluan pendaftaran mestilah sekurang-kurangnya 12 aksara.'
+          : locale === 'id-ID'
+            ? 'Kata sandi minimal 6 karakter.'
+            : 'Kata laluan mestilah sekurang-kurangnya 6 aksara.'
       );
       return;
     }
