@@ -31,29 +31,29 @@ function MarketProductIllustration({
   compact?: boolean;
 }) {
   const color = PRODUCT_PALETTE[item.color];
-  const gradientId = \`product-\${item.id.replace(/[^a-zA-Z0-9_-]/g, '')}\`;
+  const gradientId = `product-${item.id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
   return (
     <div
       aria-hidden="true"
-      className={\`relative overflow-hidden rounded-2xl border border-[#775A35]/10 bg-gradient-to-br from-[#FFFDF7] via-[#F8EED9] to-[#EAD5B1] \${compact ? 'h-16 w-20 shrink-0' : 'h-28 w-full'}\`}
+      className={`relative overflow-hidden rounded-2xl border border-[#775A35]/10 bg-gradient-to-br from-[#FFFDF7] via-[#F8EED9] to-[#EAD5B1] ${compact ? 'h-16 w-20 shrink-0' : 'h-28 w-full'}`}
     >
       <svg viewBox="0 0 180 112" className="h-full w-full" role="presentation">
         <defs>
-          <linearGradient id={\`\${gradientId}-shadow\`} x1="0" x2="0" y1="0" y2="1">
+          <linearGradient id={`${gradientId}-shadow`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="#8A6C42" stopOpacity=".05" />
             <stop offset="100%" stopColor="#8A6C42" stopOpacity=".24" />
           </linearGradient>
-          <linearGradient id={\`\${gradientId}-product\`} x1="0" x2="1" y1="0" y2="1">
+          <linearGradient id={`${gradientId}-product`} x1="0" x2="1" y1="0" y2="1">
             <stop offset="0%" stopColor={color.light} />
             <stop offset="48%" stopColor={color.main} />
             <stop offset="100%" stopColor={color.dark} />
           </linearGradient>
         </defs>
-        <ellipse cx="90" cy="96" rx="42" ry="7" fill={\`url(#\${gradientId}-shadow)\`} />
+        <ellipse cx="90" cy="96" rx="42" ry="7" fill={`url(#${gradientId}-shadow)`} />
         {item.productType === 'apple' && (
           <g>
-            <path d="M84 34 C74 25 58 34 56 52 C53 72 67 87 82 84 C88 82 93 82 99 84 C116 88 128 70 124 52 C120 34 105 27 95 35 C91 38 88 38 84 34Z" fill={\`url(#\${gradientId}-product)\`} stroke={color.dark} strokeWidth="1.5" />
+            <path d="M84 34 C74 25 58 34 56 52 C53 72 67 87 82 84 C88 82 93 82 99 84 C116 88 128 70 124 52 C120 34 105 27 95 35 C91 38 88 38 84 34Z" fill={`url(#${gradientId}-product)`} stroke={color.dark} strokeWidth="1.5" />
             <path d="M90 36 C89 28 94 23 99 18" fill="none" stroke="#68442A" strokeWidth="5" strokeLinecap="round" />
             <path d="M96 24 C105 10 121 13 127 17 C119 29 107 31 96 24Z" fill="#4C8F4F" stroke="#2D6839" strokeWidth="1.5" />
             <path d="M67 49 C68 41 73 39 77 39" fill="none" stroke="#FFFFFF" strokeOpacity=".72" strokeWidth="4" strokeLinecap="round" />
@@ -63,7 +63,7 @@ function MarketProductIllustration({
         {item.productType === 'book' && (
           <g>
             <path d="M47 32 L88 22 Q95 21 101 27 L133 43 L91 57 Z" fill={color.dark} opacity=".95" />
-            <path d="M47 32 L90 47 L90 88 L47 73 Z" fill={\`url(#\${gradientId}-product)\`} stroke={color.dark} strokeWidth="1.5" />
+            <path d="M47 32 L90 47 L90 88 L47 73 Z" fill={`url(#${gradientId}-product)`} stroke={color.dark} strokeWidth="1.5" />
             <path d="M90 47 L133 32 L133 73 L90 88 Z" fill={color.main} stroke={color.dark} strokeWidth="1.5" />
             <path d="M90 47 L90 88" stroke="#FDF7E9" strokeWidth="2" />
             <path d="M55 40 L81 49 M55 47 L81 56 M55 54 L77 62" stroke="#FFF9E8" strokeOpacity=".9" strokeWidth="2" strokeLinecap="round" />
