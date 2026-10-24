@@ -412,8 +412,15 @@ async function startServer() {
     const user = getAuthenticatedUser(req, db);
     if (!user) { res.status(401).json({ error: 'UNAUTHORIZED' }); return; }
 
+    const adminEmails = new Set(
+      (process.env.ADMIN_EMAILS || '')
+        .split(',')
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean)
+    );
+    const isAdmin = adminEmails.has(user.email.toLowerCase());
     const requests = db.teacherReviewRequests
-      .filter((request) => request.userId === user.id)
+      .filter((request) => isAdmin || request.userId === user.id)
       .slice(-20)
       .reverse()
       .map(({ id, lessonId, verseRef, focusArea, focusNote, locale, status, submittedAt }) => ({
