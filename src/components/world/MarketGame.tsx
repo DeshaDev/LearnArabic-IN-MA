@@ -259,7 +259,7 @@ export const MarketGame: React.FC<MarketGameProps> = ({
 
       {/* Customer Request Banner */}
       <div className="bg-white rounded-2xl p-6 border border-[#145A4A]/25 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#DDEBE3] text-[#145A4A]">
               <svg viewBox="0 0 48 48" className="h-10 w-10" role="presentation" aria-hidden="true">
@@ -282,33 +282,25 @@ export const MarketGame: React.FC<MarketGameProps> = ({
               </h3>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-start sm:self-auto">
             <MarketStallIllustration />
-          <div>
-            <span className="text-xs font-semibold text-[#145A4A]">
-              {currentStage.title[locale]}
-            </span>
-            <h3 className="text-base font-bold text-[#1C2724] mt-0.5">
-              {currentStage.customerName[locale]}
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={() =>
-              audioController.playVerifiedOrFallback({
-                arabicText: currentStage.arabicRequest,
-                allowSyntheticFallback: true,
-              })
-            }
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#DDEBE3] text-[#145A4A] text-xs font-semibold hover:bg-[#cde0d5]"
-          >
-            <Volume2 className="w-3.5 h-3.5" />
-            <span>
-              {locale === 'id-ID'
-                ? 'Bantuan Pelafalan Pesanan'
-                : 'Bantuan Sebutan Pesanan'}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() =>
+                audioController.playVerifiedOrFallback({
+                  arabicText: currentStage.arabicRequest,
+                  allowSyntheticFallback: true,
+                })
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#DDEBE3] text-[#145A4A] text-xs font-semibold hover:bg-[#cde0d5]"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              <span>
+                {locale === 'id-ID'
+                  ? 'Bantuan Pelafalan Pesanan'
+                  : 'Bantuan Sebutan Pesanan'}
+              </span>
+            </button>
           </div>
         </div>
 
@@ -465,10 +457,20 @@ export const MarketGame: React.FC<MarketGameProps> = ({
           </div>
 
           {totalItemsInBasket === 0 ? (
-            <div className="py-8 text-center text-xs text-[#1C2724]/65 bg-[#F7F5EF] rounded-xl border border-[#1C2724]/8">
-              {locale === 'id-ID'
-                ? 'Keranjang masih kosong. Pilih barang dari rak di sebelah kiri sesuai permintaan berbahasa Arab.'
-                : 'Bakul masih kosong. Pilih barang dari rak di sebelah kiri mengikut permintaan berbahasa Arab.'}
+            <div className="flex flex-col items-center gap-3 py-7 px-4 text-center text-xs text-[#1C2724]/65 bg-[#F7F5EF] rounded-xl border border-[#1C2724]/8">
+              <svg viewBox="0 0 120 88" className="h-20 w-28" role="presentation" aria-hidden="true">
+                <ellipse cx="60" cy="77" rx="35" ry="5" fill="#8A6C42" opacity=".14" />
+                <path d="M27 28 L93 28 L84 69 Q60 81 36 69Z" fill="#D6A96B" stroke="#8C623A" strokeWidth="2.5" />
+                <path d="M31 34 L89 34 M35 45 L85 45 M38 56 L82 56" stroke="#A87743" strokeWidth="3" strokeLinecap="round" />
+                <path d="M36 29 C36 8 84 8 84 29" fill="none" stroke="#8C623A" strokeWidth="4" strokeLinecap="round" />
+                <path d="M43 32 L48 68 M59 32 L60 72 M75 32 L71 68" stroke="#F0D2A0" strokeWidth="2" />
+                <path d="M21 18 L16 11 M99 18 L104 11 M60 7 L60 0" stroke="#E7B83F" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              <span className="max-w-xs leading-relaxed">
+                {locale === 'id-ID'
+                  ? 'Keranjang masih kosong. Pilih barang bergambar di rak sesuai permintaan berbahasa Arab.'
+                  : 'Bakul masih kosong. Pilih barang bergambar di rak mengikut permintaan berbahasa Arab.'}
+              </span>
             </div>
           ) : (
             <div className="space-y-2">
