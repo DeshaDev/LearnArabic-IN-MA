@@ -84,6 +84,7 @@ function sanitizeProgress(value: unknown): Record<string, unknown> | null {
   return sanitized;
 }
 
+// JSON storage is intentionally single-process for this MVP. Use a transactional shared database before horizontal scaling.
 function loadDb(): DatabaseSchema {
   fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o700 });
   if (!fs.existsSync(DB_FILE)) {
