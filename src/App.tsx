@@ -238,6 +238,14 @@ export function App() {
                 : { ...prev, lastSyncedAt: data.syncedAt }
             );
           }
+        } else if (response.status === 401) {
+          // The server session may have expired or been revoked. Do not keep
+          // showing a signed-in state when every save is rejected.
+          setProgress((prev) =>
+            prev.authToken !== progress.authToken
+              ? prev
+              : { ...prev, user: null, authToken: null, lastSyncedAt: null }
+          );
         }
       } catch {
         // Do not claim sync succeeded if network/server failed
