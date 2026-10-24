@@ -216,6 +216,10 @@ function injectLocalizedSeoHtml(rawHtml: string, reqPath: string, appUrl: string
 
 async function startServer() {
   const app = express();
+  const trustProxyHops = process.env.TRUST_PROXY_HOPS === undefined ? 0 : Number(process.env.TRUST_PROXY_HOPS);
+  if (Number.isInteger(trustProxyHops) && trustProxyHops >= 0 && trustProxyHops <= 10) {
+    app.set('trust proxy', trustProxyHops);
+  }
   app.disable('x-powered-by');
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
