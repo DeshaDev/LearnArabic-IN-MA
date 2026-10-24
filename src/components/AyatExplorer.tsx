@@ -186,7 +186,10 @@ export const AyatExplorer: React.FC<AyatExplorerProps> = ({
     try {
       const response = await fetch('/api/teacher-reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(progress.authToken ? { Authorization: `Bearer ${progress.authToken}` } : {}),
+        },
         body: JSON.stringify({
           lessonId: lesson.id,
           verseRef: lesson.verseRef,
