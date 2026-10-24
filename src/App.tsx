@@ -510,6 +510,15 @@ export function App() {
   };
 
   const handleSignOut = () => {
+    const token = progress.authToken;
+    if (token) {
+      void fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {
+        // Local sign-out still takes effect if the server is temporarily unreachable.
+      });
+    }
     setProgress((prev) => ({
       ...prev,
       user: null,
