@@ -447,7 +447,7 @@ export const Market3DScene: React.FC<Market3DSceneProps> = ({
         const nextZ = THREE.MathUtils.clamp(playerPosition.z + moveZ, -12.6, 12.5);
         if (!blocked(nextX, playerPosition.z)) playerPosition.x = nextX;
         if (!blocked(playerPosition.x, nextZ)) playerPosition.z = nextZ;
-        yaw = Math.atan2(-moveX, moveZ);
+        yaw = Math.atan2(-moveX, -moveZ);
         walkTime += delta * (keys.has('shift') ? 13 : 9);
       }
 
@@ -525,7 +525,7 @@ export const Market3DScene: React.FC<Market3DSceneProps> = ({
       renderer.dispose();
       if (renderer.domElement.parentElement === host) host.removeChild(renderer.domElement);
     };
-  }, [items]);
+  }, [items, locale]);
 
   const selectedItem = items.find((item) => item.id === nearbyItemId) || null;
   const totalItems = Object.values(basket).reduce((sum, qty) => sum + qty, 0);
@@ -599,7 +599,7 @@ export const Market3DScene: React.FC<Market3DSceneProps> = ({
           <ControlButton label="↓" onDown={() => holdKey('ArrowDown', true)} onUp={() => holdKey('ArrowDown', false)} />
           <ControlButton label="→" onDown={() => holdKey('ArrowRight', true)} onUp={() => holdKey('ArrowRight', false)} />
         </div>
-        <button type="button" onClick={() => holdKey('e', true)} className="mt-1 rounded-xl border border-[#f3c76b]/70 bg-[#2b1d11]/95 px-5 py-2 text-xs font-black text-[#f8d68d] shadow-lg">
+        <button type="button" onClick={() => { holdKey('e', true); holdKey('e', false); }} className="mt-1 rounded-xl border border-[#f3c76b]/70 bg-[#2b1d11]/95 px-5 py-2 text-xs font-black text-[#f8d68d] shadow-lg">
           {locale === 'id-ID' ? 'AMBIL (E)' : 'AMBIL (E)'}
         </button>
       </div>
