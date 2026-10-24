@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LocaleCode } from '../../types/learning';
-import { MARKET_INVENTORY, MARKET_MISSIONS } from '../../data/worldData';
+import { MARKET_INVENTORY, MARKET_MISSIONS, MarketProductItem } from '../../data/worldData';
 import { evaluateMarketOrder } from '../../utils/worldEngine';
 import { audioController } from '../../utils/audioPlayer';
 import {
@@ -14,6 +14,122 @@ import {
   Sparkles,
   Star,
 } from 'lucide-react';
+
+const PRODUCT_PALETTE = {
+  red: { main: '#D9433F', dark: '#9F2928', light: '#FFAAA0' },
+  green: { main: '#4F9D59', dark: '#24683A', light: '#BDE7A8' },
+  blue: { main: '#2F73C8', dark: '#194780', light: '#A8D3FF' },
+  yellow: { main: '#E7B83F', dark: '#A66C13', light: '#FFF0A5' },
+  brown: { main: '#A96A3E', dark: '#714126', light: '#EBC69D' },
+} as const;
+
+function MarketProductIllustration({
+  item,
+  compact = false,
+}: {
+  item: MarketProductItem;
+  compact?: boolean;
+}) {
+  const color = PRODUCT_PALETTE[item.color];
+  const gradientId = \`product-\${item.id.replace(/[^a-zA-Z0-9_-]/g, '')}\`;
+
+  return (
+    <div
+      aria-hidden="true"
+      className={\`relative overflow-hidden rounded-2xl border border-[#775A35]/10 bg-gradient-to-br from-[#FFFDF7] via-[#F8EED9] to-[#EAD5B1] \${compact ? 'h-16 w-20 shrink-0' : 'h-28 w-full'}\`}
+    >
+      <svg viewBox="0 0 180 112" className="h-full w-full" role="presentation">
+        <defs>
+          <linearGradient id={\`\${gradientId}-shadow\`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#8A6C42" stopOpacity=".05" />
+            <stop offset="100%" stopColor="#8A6C42" stopOpacity=".24" />
+          </linearGradient>
+          <linearGradient id={\`\${gradientId}-product\`} x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor={color.light} />
+            <stop offset="48%" stopColor={color.main} />
+            <stop offset="100%" stopColor={color.dark} />
+          </linearGradient>
+        </defs>
+        <ellipse cx="90" cy="96" rx="42" ry="7" fill={\`url(#\${gradientId}-shadow)\`} />
+        {item.productType === 'apple' && (
+          <g>
+            <path d="M84 34 C74 25 58 34 56 52 C53 72 67 87 82 84 C88 82 93 82 99 84 C116 88 128 70 124 52 C120 34 105 27 95 35 C91 38 88 38 84 34Z" fill={\`url(#\${gradientId}-product)\`} stroke={color.dark} strokeWidth="1.5" />
+            <path d="M90 36 C89 28 94 23 99 18" fill="none" stroke="#68442A" strokeWidth="5" strokeLinecap="round" />
+            <path d="M96 24 C105 10 121 13 127 17 C119 29 107 31 96 24Z" fill="#4C8F4F" stroke="#2D6839" strokeWidth="1.5" />
+            <path d="M67 49 C68 41 73 39 77 39" fill="none" stroke="#FFFFFF" strokeOpacity=".72" strokeWidth="4" strokeLinecap="round" />
+            <path d="M92 42 C87 55 88 69 92 78" fill="none" stroke={color.dark} strokeOpacity=".23" strokeWidth="2" />
+          </g>
+        )}
+        {item.productType === 'book' && (
+          <g>
+            <path d="M47 32 L88 22 Q95 21 101 27 L133 43 L91 57 Z" fill={color.dark} opacity=".95" />
+            <path d="M47 32 L90 47 L90 88 L47 73 Z" fill={\`url(#\${gradientId}-product)\`} stroke={color.dark} strokeWidth="1.5" />
+            <path d="M90 47 L133 32 L133 73 L90 88 Z" fill={color.main} stroke={color.dark} strokeWidth="1.5" />
+            <path d="M90 47 L90 88" stroke="#FDF7E9" strokeWidth="2" />
+            <path d="M55 40 L81 49 M55 47 L81 56 M55 54 L77 62" stroke="#FFF9E8" strokeOpacity=".9" strokeWidth="2" strokeLinecap="round" />
+            <path d="M99 48 L122 40 M99 56 L122 48 M99 64 L122 56" stroke="#FFF9E8" strokeOpacity=".72" strokeWidth="2" strokeLinecap="round" />
+            <path d="M51 75 L90 89 L129 74" fill="none" stroke="#F7EAD0" strokeWidth="4" />
+          </g>
+        )}
+        {item.productType === 'bread' && (
+          <g>
+            <path d="M43 75 C34 66 40 48 55 43 C62 26 82 22 97 32 C115 25 134 39 133 56 C144 67 131 82 115 83 L59 83 C52 83 47 80 43 75Z" fill="#B87938" opacity=".28" transform="translate(0 5)" />
+            <path d="M43 69 C34 60 40 42 55 37 C62 20 82 16 97 26 C115 19 134 33 133 50 C144 61 131 76 115 77 L59 77 C52 77 47 74 43 69Z" fill="#DCA45D" stroke="#A8672B" strokeWidth="2" />
+            <path d="M59 35 Q68 43 67 54 M82 27 Q92 36 90 47 M106 29 Q116 38 113 48" fill="none" stroke="#F8E3B7" strokeWidth="5" strokeLinecap="round" />
+            <path d="M58 37 Q66 44 65 52 M81 29 Q89 37 88 45 M105 31 Q113 39 111 47" fill="none" stroke="#A8672B" strokeWidth="1.5" strokeLinecap="round" />
+          </g>
+        )}
+        {item.productType === 'dates' && (
+          <g>
+            <path d="M48 51 L132 51 L124 83 Q90 94 56 83Z" fill="#C79658" stroke="#87552E" strokeWidth="2" />
+            <path d="M48 51 L132 51 L126 64 L54 64Z" fill="#E6C18D" stroke="#87552E" strokeWidth="2" />
+            <path d="M55 50 C43 44 48 28 62 30 C76 31 74 48 62 53Z" fill="#5B2E24" stroke="#3D201B" strokeWidth="1.5" />
+            <path d="M71 47 C60 39 66 23 79 26 C92 29 89 45 78 50Z" fill="#713B2A" stroke="#3D201B" strokeWidth="1.5" />
+            <path d="M86 49 C77 40 84 25 96 28 C109 31 105 47 94 52Z" fill="#5A2B20" stroke="#3D201B" strokeWidth="1.5" />
+            <path d="M103 48 C94 39 102 25 113 30 C125 34 121 49 110 52Z" fill="#7F432D" stroke="#3D201B" strokeWidth="1.5" />
+            <path d="M59 34 L66 38 M76 31 L82 35 M93 33 L99 37 M107 35 L113 39" stroke="#D9A06B" strokeWidth="2" strokeLinecap="round" />
+            <path d="M57 69 L123 69" stroke="#A56C39" strokeWidth="2" strokeOpacity=".65" />
+          </g>
+        )}
+        {item.productType === 'cup' && (
+          <g>
+            <path d="M118 42 C147 36 145 65 120 68" fill="none" stroke="#B7C8BE" strokeWidth="10" strokeLinecap="round" />
+            <path d="M47 34 L124 34 L116 81 Q87 91 57 81Z" fill="#F4F1E8" stroke="#7E9388" strokeWidth="2" />
+            <path d="M50 38 L121 38" stroke={color.main} strokeWidth="5" strokeLinecap="round" />
+            <path d="M53 43 L119 43 L114 78 Q86 86 61 78Z" fill={color.main} opacity=".92" />
+            <path d="M68 27 C60 18 73 14 67 6 M88 27 C80 18 94 14 87 5 M107 27 C100 18 112 13 106 6" fill="none" stroke="#A7B6AE" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M60 45 L64 74" stroke="#FFFFFF" strokeOpacity=".75" strokeWidth="4" strokeLinecap="round" />
+          </g>
+        )}
+      </svg>
+      {!compact && (
+        <span className="absolute bottom-2 right-2 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold text-[#705334] shadow-sm">
+          {item.size === 'large' ? 'XL' : 'S'}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function MarketStallIllustration() {
+  return (
+    <div aria-hidden="true" className="hidden h-24 w-40 shrink-0 overflow-hidden rounded-xl border border-[#E3D2B7] bg-[#F7E8CA] sm:block">
+      <svg viewBox="0 0 160 96" className="h-full w-full" role="presentation">
+        <circle cx="130" cy="17" r="9" fill="#E7B83F" opacity=".8" />
+        <path d="M0 70 L160 60 L160 96 L0 96Z" fill="#D6BE93" />
+        <rect x="31" y="27" width="100" height="57" rx="3" fill="#F4DFB7" stroke="#9E7645" strokeWidth="1.5" />
+        <rect x="25" y="22" width="110" height="13" rx="2" fill="#145A4A" />
+        <path d="M25 35 L135 35 L127 47 L33 47Z" fill="#EBC87D" stroke="#9E7645" strokeWidth="1.5" />
+        <path d="M25 35 L43 35 L40 47 L33 47Z M61 35 L79 35 L76 47 L58 47Z M97 35 L115 35 L112 47 L94 47Z M125 35 L135 35 L127 47 L112 47Z" fill="#C95E47" />
+        <rect x="40" y="52" width="35" height="29" rx="2" fill="#B9854E" stroke="#805B35" />
+        <rect x="83" y="52" width="39" height="29" rx="2" fill="#B9854E" stroke="#805B35" />
+        <path d="M40 60 L75 60 M40 69 L75 69 M83 60 L122 60 M83 69 L122 69" stroke="#805B35" strokeWidth="1.5" />
+        <circle cx="49" cy="57" r="5" fill="#D9433F" /><circle cx="61" cy="56" r="5" fill="#4F9D59" /><circle cx="69" cy="58" r="4" fill="#D9433F" />
+        <ellipse cx="92" cy="57" rx="5" ry="4" fill="#6B3327" /><ellipse cx="104" cy="57" rx="5" ry="4" fill="#7C422B" /><ellipse cx="114" cy="57" rx="5" ry="4" fill="#5B2E24" />
+      </svg>
+    </div>
+  );
+}
 
 interface MarketGameProps {
   locale: LocaleCode;
@@ -143,7 +259,31 @@ export const MarketGame: React.FC<MarketGameProps> = ({
 
       {/* Customer Request Banner */}
       <div className="bg-white rounded-2xl p-6 border border-[#145A4A]/25 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#DDEBE3] text-[#145A4A]">
+              <svg viewBox="0 0 48 48" className="h-10 w-10" role="presentation" aria-hidden="true">
+                <circle cx="24" cy="24" r="21" fill="#F3D6AE" />
+                <path d="M9 20 C10 8 37 6 39 21 L35 21 L33 14 L15 14 L13 21Z" fill="#145A4A" />
+                <path d="M13 24 C13 15 18 13 24 13 C31 13 35 17 35 25 L32 34 L16 34Z" fill="#F1C49D" />
+                <path d="M15 20 Q24 14 33 20 L32 16 L16 16Z" fill="#FFFFFF" />
+                <circle cx="20" cy="24" r="1.5" fill="#3E3227" />
+                <circle cx="28" cy="24" r="1.5" fill="#3E3227" />
+                <path d="M20 29 Q24 32 28 29" fill="none" stroke="#9A5140" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M16 36 Q24 30 32 36 L36 43 L12 43Z" fill="#145A4A" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-[#145A4A]">
+                {currentStage.title[locale]}
+              </span>
+              <h3 className="text-base font-bold text-[#1C2724] mt-0.5">
+                {currentStage.customerName[locale]}
+              </h3>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <MarketStallIllustration />
           <div>
             <span className="text-xs font-semibold text-[#145A4A]">
               {currentStage.title[locale]}
@@ -169,6 +309,7 @@ export const MarketGame: React.FC<MarketGameProps> = ({
                 : 'Bantuan Sebutan Pesanan'}
             </span>
           </button>
+          </div>
         </div>
 
         <div className="p-4 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/10 text-center space-y-1">
@@ -216,7 +357,8 @@ export const MarketGame: React.FC<MarketGameProps> = ({
                   }`}
                 >
                   <div>
-                    <div className="flex items-start justify-between gap-2">
+                    <MarketProductIllustration item={item} />
+                    <div className="flex items-start justify-between gap-2 mt-3">
                       <div>
                         <div className="text-sm font-bold text-[#1C2724]">
                           {item.name[locale]}
@@ -338,10 +480,12 @@ export const MarketGame: React.FC<MarketGameProps> = ({
                     key={itemId}
                     className="p-3 rounded-xl bg-[#F7F5EF] border border-[#1C2724]/10 flex items-center justify-between gap-2"
                   >
-                    <div>
-                      <div className="text-xs font-bold text-[#1C2724]">
-                        {qty}x {item.name[locale]}
-                      </div>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <MarketProductIllustration item={item} compact />
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-[#1C2724]">
+                          {qty}x {item.name[locale]}
+                        </div>
                       <div
                         dir="rtl"
                         lang="ar"
@@ -352,6 +496,7 @@ export const MarketGame: React.FC<MarketGameProps> = ({
                           : qty >= 3
                           ? item.arabicPlural
                           : item.arabicSingular}
+                      </div>
                       </div>
                     </div>
                     <button
